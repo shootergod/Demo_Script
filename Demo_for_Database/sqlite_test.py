@@ -1,9 +1,29 @@
+# ============================================================
+# Doc Info
+# ============================================================
+# !/usr/bin/env python
+# -*- coding: utf-8 -*-
+'''
+@File    : sqlite_test.py
+@Time    : 2023/06/20 10:27:37
+@Author  : HuJi
+@Contact : shootergod@forxmail.com
+@Version : 0.1
+@Desc    : None
+'''
+
+# ============================================================
+# Import
+# ============================================================
 import os
 import sys
 
 import sqlite3
 from typing import Union
 
+# ============================================================
+# Constant
+# ============================================================
 ScriptPath = os.path.abspath(__file__)
 ScriptDir = os.path.dirname(ScriptPath)
 

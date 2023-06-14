@@ -1,3 +1,18 @@
+# ============================================================
+# Doc Info
+# ============================================================
+# !/usr/bin/env python
+# -*- coding: utf-8 -*-
+'''
+@File    : Test_Threading_03.py
+@Time    : 2023/06/20 10:29:20
+@Author  : HuJi
+@Contact : shootergod@forxmail.com
+@Version : 0.1
+@Desc    : None
+'''
+
+
 import threading
 import time
 
