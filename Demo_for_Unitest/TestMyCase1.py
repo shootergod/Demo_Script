@@ -1,3 +1,18 @@
+# ============================================================
+# Doc Info
+# ============================================================
+# !/usr/bin/env python
+# -*- coding: utf-8 -*-
+'''
+@File    : TestMyCase1.py
+@Time    : 2023/06/20 10:34:59
+@Author  : HuJi
+@Contact : shootergod@forxmail.com
+@Version : 0.1
+@Desc    : None
+'''
+
+
 import unittest
 
 class TestMyCase1(unittest.TestCase):

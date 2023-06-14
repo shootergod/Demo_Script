@@ -30,15 +30,16 @@ CONF_FP = os.path.join(CWD, 'conf.json')
 # conf path of color scheme
 CS_FP = os.path.join(CWD, 'color_scheme.json')
 
-OPT_DIR = 'last_md_dir'
-OPT_FILE = 'last_md_file'
+OPT_DIR = 'last_file_dir'
+OPT_FILE = 'last_file_file'
+
+FILE_TYPES = ('.txt', '.md')
 
 COLOR_SCHEME_0 = Config(fp=CS_FP).get_opt('COLOR_SCHEME_0')
 COLOR_SCHEME_TRELLO = Config(fp=CS_FP).get_opt('COLOR_SCHEME_TRELLO')
 COLOR_SCHEME_IOS = Config(fp=CS_FP).get_opt('COLOR_SCHEME_IOS')
 
-COLOR_SCHEME_USE = COLOR_SCHEME_IOS
-
+COLOR_SCHEME_USE = COLOR_SCHEME_0
 
 
 # ============================================================
@@ -84,112 +85,81 @@ class DocBase():
 # ============================================================
 # Class
 # ============================================================
-class DocMd(DocBase):
+class DocGeneric(DocBase):
     LABEL_FIELD = 'label_define_field_'
     LINKAGE_FIELD = 'linkage_define_field_'
 
     def __init__(self, fp: str) -> None:
 
-        self.__md_fp = fp
+        self._fp = fp
 
-        self.__dot_data: list[str] = []
+        self._dot_data: list[str] = []
 
-        self.__data_raw: list[str] = []
-        self.__data_net: list[str] = []
+        self._data_raw: list[str] = []
+        self._data_net: list[str] = []
 
-        self.__nodes: list[str] = []
+        self._nodes: list[str] = []
 
-        self.__lvl_info: list[int] = []
-        self.__lvl_max: int = 0
-        self.__lvl_limit: int = 18
+        self._lvl_info: list[int] = []
+        self._lvl_max: int = 0
+        self._lvl_limit: int = 18
 
-        self.__tree: Tree = None
-
-        # ========================================
-        # init funcs
-        # ========================================
-        self.__get_dot_template()
-        self.__get_md_data()
-        self.__get_useful_line()
-        self.__get_nodes()
-
-        ## make unique
-        # - update identical elements
-        make_unique = False
-        if make_unique:
-            self.__make_node_unique()
-
-        self.__add_double_quot()
-
-        self.__get_lvl_info()
-        self.__get_lvl_max()
-        self.__lvl_chk()
+        self._tree: Tree = None
 
         ## set start level
         self.plot_start_level = 1
 
-        self.__insert_node_to_each_level()
+        ## make unique
+        # - update identical elements
+        self._make_unique = True
 
-        self.__create_graph_tree()
+        # ========================================
+        # init funcs
+        # ========================================
+        self._collect_init_info()
+        # after collect, the rest of two steps handover to sub-class:
+        # 1. make graph raw info clearn [sub-class must implemented].
+        # 2. call 'create_graph' in base-class to create final graph.
 
-        self.__insert_linkage_block_to_each_level()
-
-        self.__remove_bookmark()
-
-        self.__update_color_scheme()
+    # ============================================================
+    # phase 0 funcs
+    # ============================================================
 
     # ==================================================
-    # __get_doc_template
+    # _get_dot_template
     # ==================================================
-    def __get_dot_template(self):
-        self.__dot_data = self._file_2_list(
+    def _get_dot_template(self):
+        self._dot_data = self._file_2_list(
             fp=os.path.join(CWD, 'template_dot.txt'))
 
     # ==================================================
-    # __get_md_data
+    # _get_graph_raw_data
     # ==================================================
-    def __get_md_data(self):
-        self.__data_raw = self._file_2_list(fp=self.__md_fp)
+    def _get_graph_raw_data(self):
+        self._data_raw = self._file_2_list(fp=self._fp)
 
     # ==================================================
-    # __get_useful_line
+    # _collect_init_info
     # ==================================================
-    def __get_useful_line(self) -> list[str]:
-        # get the net info [remove unwanted lines]
-        # - xmind to md will like:
-        # # L1
-        # ## L2
-        # ### L3
-        # - L4
-        # 	- L5
-        # 		- L6
+    def _collect_init_info(self):
+        self._get_dot_template()
+        self._get_graph_raw_data()
 
-        self.__data_net.clear()
-
-        pattern = '(^#+(\s))|((^\t*)(-\s))'
-
-        for line in self.__data_raw:
-            if re.match(pattern=pattern, string=line):
-                self.__data_net.append(line)
+    # ============================================================
+    # phase 3 funcs
+    # ============================================================
 
     # ==================================================
-    # __get_node_text
+    # _get_nodes
     # ==================================================
-    def __get_node_text(self, node: str) -> str:
-        pattern = '(^#+(\s))|((^\t*)(-\s))'
-        return re.sub(pattern=pattern, repl='', string=node)
+    def _get_nodes(self):
+        self._nodes = [line.lstrip(' ') for line in self._data_net]
 
     # ==================================================
-    # __get_nodes
+    # _make_node_unique
     # ==================================================
-    def __get_nodes(self):
-        self.__nodes = [self.__get_node_text(node) for node in self.__data_net]
-
-    # ==================================================
-    # __make_node_unique
-    # ==================================================
-    def __make_node_unique(self) -> list[str]:
-        nodes = self.__nodes
+    def _make_node_unique(self) -> list[str]:
+        nodes = self._nodes
         for i in range(len(nodes)):
             str0 = nodes[i]
             for j in range((i + 1), len(nodes)):
@@ -199,59 +169,44 @@ class DocMd(DocBase):
                     nodes[j] = nodes[j] + ' '
 
     # ==================================================
-    # __add_double_quot
+    # _add_double_quot
     # ==================================================
-    def __add_double_quot(self) -> list[str]:
-        nodes = self.__nodes
+    def _add_double_quot(self) -> list[str]:
+        nodes = self._nodes
         for i in range(len(nodes)):
             nodes[i] = '"' + nodes[i] + '"'
 
     # ==================================================
-    # __get_lvl_info
+    # _get_lvl_info
     # ==================================================
-    def __get_lvl_info(self) -> list[int]:
-        self.__lvl_info.clear()
-
-        ptn_1 = '^#+(\s)'
-        ptn_2 = '((^\t+)(-\s))|(^-\s)'
-
-        for line in self.__data_net:
-
-            # case 1: level 1~3
-            if re.match(pattern=ptn_1, string=line):
-                matchStr = re.match(pattern=ptn_1, string=line).group()
-
-                tmp_lvl = matchStr.count('#')
-
-            # case 2: level 4~N
-            if re.match(pattern=ptn_2, string=line):
-                matchStr = re.match(pattern=ptn_2, string=line).group()
-                # 0 tab will be level 4, so offset here
-                tmp_lvl = matchStr.count('\t') + 4
-
-            self.__lvl_info.append(tmp_lvl)
+    def _get_lvl_info(self) -> list[int]:
+        self._lvl_info.clear()
+        for line in self._data_net:
+            bn = len(line) - len(line.lstrip(' '))
+            tmp_lvl = int((bn + 4) / 4)
+            self._lvl_info.append(tmp_lvl)
 
     # ==================================================
-    # __get_lvl_max
+    # _get_lvl_max
     # ==================================================
-    def __get_lvl_max(self):
-        self.__lvl_max = max(self.__lvl_info)
+    def _get_lvl_max(self):
+        self._lvl_max = max(self._lvl_info)
 
     # ==================================================
-    # __lvl_chk
+    # _lvl_chk
     # ==================================================
-    def __lvl_chk(self):
-        if self.__lvl_max > self.__lvl_limit:
-            info = 'lvl_max {} > lvl_limit {}'.format(self.__lvl_max,
-                                                      self.__lvl_limit)
+    def _lvl_chk(self):
+        if self._lvl_max > self._lvl_limit:
+            info = 'lvl_max {} > lvl_limit {}'.format(self._lvl_max,
+                                                      self._lvl_limit)
             raise Exception(info)
 
     # ==================================================
-    # __get_nodes_by_level
+    # helpers
     # ==================================================
     def __get_nodes_by_level(self, level: int) -> list[str]:
         rst = []
-        for lid, node in zip(self.__lvl_info, self.__nodes):
+        for lid, node in zip(self._lvl_info, self._nodes):
             if lid == level:
                 rst.append(node)
         return rst
@@ -260,33 +215,33 @@ class DocMd(DocBase):
         return ' ' * 8 + node
 
     def __insert_content(self, loc: str, data: list[str]):
-        lines = self.__dot_data
+        lines = self._dot_data
         if loc in lines:
             rid = lines.index(loc)
-            self.__dot_data = lines[:rid] + data + lines[rid:]
+            self._dot_data = lines[:rid] + data + lines[rid:]
 
     # ==================================================
-    # __insert_node_to_each_level
+    # _insert_node_to_each_level
     # ==================================================
-    def __insert_node_to_each_level(self):
+    def _insert_node_to_each_level(self):
         # inset label of each level to target template
-        for i in range(self.plot_start_level, self.__lvl_max + 1):
+        for i in range(self.plot_start_level, self._lvl_max + 1):
             # - for each level find sub set
             nodes = self.__get_nodes_by_level(i)
 
             # - insert to content
-            loc = DocMd.LABEL_FIELD + str(i)
+            loc = DocGeneric.LABEL_FIELD + str(i)
             data = [self.__add_node_prefix(node) for node in nodes]
 
             self.__insert_content(loc=loc, data=data)
 
     # ==================================================
-    # __create_graph_tree
+    # _create_graph_tree
     # ==================================================
-    def __create_graph_tree(self) -> list[int]:
+    def _create_graph_tree(self) -> list[int]:
         root = None
         masters: list[Tree] = []
-        for lvl, label in zip(self.__lvl_info, self.__nodes):
+        for lvl, label in zip(self._lvl_info, self._nodes):
             if lvl == 1:
                 # case 01: special for 1st node [root node]
                 # add node
@@ -308,10 +263,10 @@ class DocMd(DocBase):
                     masters.append(None)
                 masters[lvl - 1] = tmp_node
 
-        self.__tree = root
+        self._tree = root
 
     # ==================================================
-    # __create_linkage_block_4_dir_plot
+    # helpers
     # ==================================================
     def __create_linkage_block_4_dir_plot(self, node_m, node_s) -> list[str]:
         part01 = ['    {']
@@ -332,11 +287,11 @@ class DocMd(DocBase):
         return rst
 
     # ==================================================
-    # __insert_linkage_block_to_each_level
+    # _insert_linkage_block_to_each_level
     # ==================================================
-    def __insert_linkage_block_to_each_level(self):
+    def _insert_linkage_block_to_each_level(self):
 
-        nodes = self.__tree.traverse()
+        nodes = self._tree.traverse()
         for node in nodes:
             node_lvl = node.get_level()
             if node_lvl < self.plot_start_level:
@@ -347,69 +302,200 @@ class DocMd(DocBase):
                 label_s = [item.get_name() for item in node.get_children()]
                 data = self.__create_linkage_block_4_dir_plot(node_m=label_m,
                                                               node_s=label_s)
-                loc = DocMd.LINKAGE_FIELD + str(node_lvl)
+                loc = DocGeneric.LINKAGE_FIELD + str(node_lvl)
                 self.__insert_content(loc=loc, data=data)
 
-    def __remove_bookmark(self):
-        for ind, line in enumerate(self.__dot_data):
-            if line.startswith(DocMd.LABEL_FIELD) or line.startswith(
-                    DocMd.LINKAGE_FIELD):
-                self.__dot_data[ind] = ''
+    def _remove_bookmark(self):
+        for ind, line in enumerate(self._dot_data):
+            if line.startswith(DocGeneric.LABEL_FIELD) or line.startswith(
+                    DocGeneric.LINKAGE_FIELD):
+                self._dot_data[ind] = ''
 
-    def __update_color_scheme(self):
+    def _update_color_scheme(self):
         pat = "#[0-9a-f]{6}"
         color_len = len(COLOR_SCHEME_USE)
         color_counter = -1
 
-        for ind, line in enumerate(self.__dot_data):
+        for ind, line in enumerate(self._dot_data):
             if re.search(pattern=pat, string=line):
                 color_counter += 1
                 color_tmp = COLOR_SCHEME_USE[color_counter % color_len]
-                self.__dot_data[ind] = re.sub(pattern=pat,
-                                              repl=color_tmp,
-                                              string=line)
+                self._dot_data[ind] = re.sub(pattern=pat,
+                                             repl=color_tmp,
+                                             string=line)
 
+    # ==================================================
+    # write_dot_file
+    # ==================================================
     def write_dot_file(self) -> str:
-        dot_fp = self.__md_fp.replace('.md', '.dot')
-        self._list_2_file(fp=dot_fp, data=self.__dot_data)
+
+        self._get_nodes()
+        if self._make_unique:
+            self._make_node_unique()
+
+        self._add_double_quot()
+
+        self._get_lvl_info()
+        self._get_lvl_max()
+        self._lvl_chk()
+
+        self._insert_node_to_each_level()
+        self._create_graph_tree()
+        self._insert_linkage_block_to_each_level()
+        self._remove_bookmark()
+        self._update_color_scheme()
+
+        f_ext = os.path.splitext(os.path.basename(self._fp))[1]
+        dot_fp = self._fp.replace(f_ext, '.dot')
+        self._list_2_file(fp=dot_fp, data=self._dot_data)
+
+        print('Md 2 Dot Succeed!')
         return dot_fp
 
+    # ============================================================
+    # Interface funcs
+    # ============================================================
+
+    # ==================================================
+    # _get_useful_line
+    # ==================================================
+    def _get_useful_line(self) -> list[str]:
+        raise NotImplementedError
+
+    # ==================================================
+    # _transform_to_std_model
+    # ==================================================
+    def _transform_to_std_model(self) -> list[int]:
+        raise NotImplementedError
+
 
 # ============================================================
-# md2dot2png
+# Class
 # ============================================================
-def md2dot2png(md_fp: str = '', mode: str = ''):
+class DocMd(DocGeneric):
+    def __init__(self, fp: str) -> None:
+        super().__init__(fp=fp)
 
-    # case 01:
-    if md_fp.endswith('.md'):
-        mode = 'md_path'
+        # ========================================
+        # init funcs
+        # ========================================
+        self._get_useful_line()
+        self._transform_to_std_model()
 
-        last_md_dir = os.path.dirname(md_fp)
-        last_md_file = os.path.basename(md_fp)
-        # take record
-        conf = Config(fp=CONF_FP)
-        conf.set_opt(opt_name=OPT_DIR, opt_val=last_md_dir)
-        conf.set_opt(opt_name=OPT_FILE, opt_val=last_md_file)
+    # ==================================================
+    # _get_useful_line
+    # ==================================================
+    def _get_useful_line(self) -> list[str]:
+        # get the net info [remove unwanted lines]
+        # - xmind to md will like:
+        # # L1
+        # ## L2
+        # ### L3
+        # - L4
+        # 	- L5
+        # 		- L6
 
-    # case 02: resume last
+        self._data_net.clear()
+
+        pattern = '(^#+(\s))|((^\t*)(-\s))'
+        for line in self._data_raw:
+            if re.match(pattern=pattern, string=line):
+                self._data_net.append(line)
+
+    # ==================================================
+    # _transform_to_std_model
+    # ==================================================
+    def _transform_to_std_model(self) -> list[int]:
+        ptn_1 = '^#+(\s)'
+        ptn_2 = '((^\t+)(-\s))|(^-\s)'
+
+        for ind, line in enumerate(self._data_net):
+            is_matched = False
+            # case 1: level 1~3
+            if re.match(pattern=ptn_1, string=line):
+                matchStr = re.match(pattern=ptn_1, string=line).group()
+                # '# ' '## ' '### '
+                tmp_lvl = matchStr.count('#')
+                is_matched = True
+
+            # case 2: level 4~N
+            if re.match(pattern=ptn_2, string=line):
+                matchStr = re.match(pattern=ptn_2, string=line).group()
+                # 0 tab will be level 4, so offset here
+                tmp_lvl = matchStr.count('\t') + 4
+                is_matched = True
+
+            if is_matched:
+                tmp_repl = ' ' * (4 * (tmp_lvl - 1))
+                line = line.replace(matchStr, tmp_repl)
+                self._data_net[ind] = line
+
+        self._list_2_file(fp=self._fp + '.chk', data=self._data_net)
+
+
+# ============================================================
+# Class
+# ============================================================
+class DocTxt(DocGeneric):
+    def __init__(self, fp: str) -> None:
+        super().__init__(fp=fp)
+
+        # ========================================
+        # init funcs
+        # ========================================
+        self._get_useful_line()
+        self._transform_to_std_model()
+
+    # ==================================================
+    # _get_useful_line
+    # ==================================================
+    def _get_useful_line(self) -> list[str]:
+        # txt is alway treated as std model, so nothing to do here
+        self._data_net.clear()
+        self._data_net = self._data_raw.copy()
+
+    # ==================================================
+    # _transform_to_std_model
+    # ==================================================
+    def _transform_to_std_model(self) -> list[int]:
+        # txt is alway treated as std model, so nothing to do here
+        self._list_2_file(fp=self._fp + '.chk', data=self._data_net)
+
+
+# ============================================================
+# file2dot2png
+# ============================================================
+def file2dot2png(fp: str = '', mode: str = ''):
+
+    # case: resume last -> get the last file info
     if mode == 'last':
-        # take record
+        # get record
         conf = Config(fp=CONF_FP)
         last_md_dir = conf.get_opt(opt_name=OPT_DIR)
         last_md_file = conf.get_opt(opt_name=OPT_FILE)
+        fp = os.path.join(last_md_dir, last_md_file)
 
-        md_fp = os.path.join(last_md_dir, last_md_file)
+    # check if is a right type
+    if fp.endswith(FILE_TYPES):
+        # take record
+        last_md_dir = os.path.dirname(fp)
+        last_md_file = os.path.basename(fp)
 
-    elif mode == 'md_path':
-        pass
-
+        conf = Config(fp=CONF_FP)
+        conf.set_opt(opt_name=OPT_DIR, opt_val=last_md_dir)
+        conf.set_opt(opt_name=OPT_FILE, opt_val=last_md_file)
     else:
-        info = 'Unknown Mode: {}'.format(mode)
+        info = 'Unknown File Type: {}'.format(fp)
         raise Exception(info)
 
-    # md -> dot -> png
-    md_obj = DocMd(fp=md_fp)
-    dot_fp = md_obj.write_dot_file()
+    # md -> dot
+    if fp.endswith('.txt'):
+        doc_obj = DocTxt(fp=fp)
+    elif fp.endswith('.md'):
+        doc_obj = DocMd(fp=fp)
+
+    # dot -> png
+    dot_fp = doc_obj.write_dot_file()
 
     dot2png(dot_fp=dot_fp)
 
@@ -426,7 +512,7 @@ def gui_launcher():
     # callbacks
     # ==================================================
     def btn_run_last():
-        md2dot2png(mode='last')
+        file2dot2png(mode='last')
 
     def btn_sel_new():
         conf = Config(fp=CONF_FP)
@@ -434,10 +520,11 @@ def gui_launcher():
         if not os.path.isdir(last_md_dir):
             last_md_dir = 'D:/'
 
-        fp = fd.askopenfilename(title='Select a *.md file.',
+        t_info = 'Select a *.' + str(FILE_TYPES) + ' file.'
+        fp = fd.askopenfilename(title=t_info,
                                 initialdir=last_md_dir)
-        if fp and fp.endswith('.md'):
-            md2dot2png(md_fp=fp.replace('/', '\\'))
+        if fp and fp.endswith(FILE_TYPES):
+            file2dot2png(fp=fp.replace('/', '\\'))
 
     # ==================================================
     # gui_launcher
@@ -460,6 +547,13 @@ def gui_launcher():
     blue = '#0099e5'
     red = '#ff4c4c'
 
+    unique_v = tk.IntVar()
+    chk_0 = tk.Checkbutton(root,
+                           text='Unique',
+                           bg=blue,
+                           variable=unique_v,
+                           font=fontStyle)
+
     btn_0 = tk.Button(root,
                       text='Run Last',
                       bg=blue,
@@ -470,6 +564,8 @@ def gui_launcher():
                       bg=red,
                       command=btn_sel_new,
                       font=fontStyle)
+
+    chk_0.pack()
     btn_0.pack(fill=tk.X)
     btn_1.pack(fill=tk.BOTH, expand=tk.TRUE)
 

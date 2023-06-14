@@ -1,0 +1,949 @@
+SUBDMAP SOL1,
+           GEOM1,EPT,MPT,EDT,DIT,DYNAMICS,
+           GEOM2,GEOM3,GEOM4,MATPOOL,AXIC,
+           PVT,DMI,DMINDX,DTI,DTINDX,
+           CASECC,PCDB,XYCDB,POSTCDB,deqatn,deqind,pcompt//
+           opost/ounit1x $
+           
+type parm,,char8,n,sname='sol1' $
+TYPE PARM,,CHAR8,Y,OGEOM= ' ' $ GEOMETRY
+TYPE PARM,,CHAR8,Y,OQG= 'YES' $ SPCFORCES
+TYPE PARM,,CHAR8,Y,OpG= 'YES' $ OLOADs
+TYPE PARM,,CHAR8,Y,OUG= 'YES' $ DISPLACEMENTS
+TYPE PARM,,CHAR8,Y,OEF= 'YES' $ ELEMENT FORCES
+TYPE PARM,,CHAR8,Y,OES= 'YES' $ ELEMENT STRESSES
+TYPE PARM,,CHAR8,Y,OEFx='YES' $ total ELEMENT FORCES
+TYPE PARM,,CHAR8,Y,OESx='YES' $ total ELEMENT STRESSES
+TYPE PARM,,CHAR8,Y,OEE= 'YES' $ ELEMENT STRAINS
+TYPE PARM,,CHAR8,Y,OGPS='YES' $ GRID POINT STRESSES
+TYPE PARM,,CHAR8,Y,OCMP='YES' $ COMPOSITE STRESSES AND FAILURE INDICES
+TYPE PARM,,CHAR8,Y,OESE='YES' $ ELEMENT STRAIN ENERGY
+TYPE PARM,,CHAR8,Y,OUMU='YES' $ ELEMENT KINETIC ENERGY
+TYPE PARM,,CHAR8,Y,OGPF='YES' $ GRID POINT FORCES
+TYPE PARM,,CHAR8,Y,OUGCORD=' ' $ DISPLACEMENT OUTPUT COORDINATE SYSTEM
+TYPE PARM,,I,Y,OUNIT1 $ GEOMETRY OUTPUT2 FORTRAN UNIT NUMBER
+TYPE PARM,,I,Y,OUNIT2=12 $ RESULTS  OUTPUT2 FORTRAN UNIT NUMBER
+TYPE PARM,,I,Y,POST=1,OMAXR,est=2 $ MAX RECORD LENGTH
+type parm,nddl,i,y,GPECT $
+TYPE PARM,,I,N,OUNITX=-1,OTAPE2,NP,ounit1x $
+$ set sm=yes to run the super module
+type parm,,char8,y,DYNSPCF='NEW',sm='no' $
+type parm,,char8,n,cstm,geom1,gpdt,bgpdt $
+type parm,nddl,char8,n,ftl,wrn $
+type parm,nddl,rs,y,tolrsc $
+TYPE,PARM,,RS,Y,G=0.0,W3=0.0,W4=0.0,patver=3.0 $
+TYPE,PARM,,CS,N,GW3=(0.,0.),RW4=(0.,0.) $
+TYPE,PARM,,I,N,NOW3W4,icyclic,NOQMG,NOQGOLD,estx $
+TYPE,PARM,,logi,n,opost $
+$
+type parm,nddl,char8,y,omachpr $
+type parm,nddl,rs,y,snorm $
+type parm,,i,y,snormprt=0,newseq=-1,oldseq=-9999,vmopt=0,
+               ASING=0,CURVPLOT=-1,CURV=-1,NINTPTS=10 $
+type parm,nddl,i,y,s1,s1m,s1g,s1am,s1ag,outopt,og $
+TYPE PARM,NDDL,I,N,DBCPATH,SEID $
+TYPE PARM,,I,N,NLOADS,NCUG0 $
+FILE     QMG=APPEND $
+FILE     GM=OVRWRT,SAVE/KNN=OVRWRT,SAVE/MNN=OVRWRT,SAVE $
+FILE     QG=APPEND/PGG=APPEND/UGV=APPEND  $
+SETVAL   //S,N,CARDNO/0 $
+SETVAL   //S,N,NOKGGX/1 $
+SETVAL   //S,N,NOMGGX/1 $
+SETVAL   //S,N,NOBGGX/1 $
+PARAML   CASECC//'DTI'/-1/35//S,N,SPCREQ $
+PARAML   CASECC//'DTI'/-1/170//S,N,ESE $
+PARAML   CASECC//'DTI'/-1/167//S,N,GPFO $
+PARAML   XYCDB//'PRES'////S,N,NOXYCDB $
+PARAML   PCDB//'PRES'////S,N,JUMPPLOT $
+PARAML   CASECC//'DTI'/-1/266//S,N,MPCFOR $
+NOQMG=LTOI(NOT(orl(MPCFOR,gpfo))) $
+PARAM    //'NOT'/S,N,SPCREQ/V,N,SPCREQ/V,Y,NOGPF=1 $
+PARAM    //'NOT'/S,N,GPFO/GPFO $
+PARAM    //'NOT'/S,N,ESE/ESE $
+PARAM    //'AND'/S,N,NOSPC/GPFO/SPCREQ $
+PARAM    //'AND'/S,N,GPFDR/ESE/GPFO $
+noqgold=ltoi(nospc=-1 or dynspcf='new') $
+SETVAL   //S,N,PLTFLG/1/S,N,PFILE/0 $
+if ( newseq>=0 ) then $
+   message //' user'/wrn/'message 9089 ('/sname/')' $
+   message //' PARAM,NEWSEQ is ignored because resequencing'/ 
+             ' is no longer recommended except for solutions'/ 
+             ' with the distributed domain decomposition method.' $
+   message //' NEWSEQ has been renamed OLDSEQ and its default is -1'/
+             ' except for the distributed domain decomposition'/
+             ' method (SOL 101 submitted with dmp=n; where the'/
+             ' default is 9--automatic model partitioner).'/
+             ' if still desired and the supermodule is not'/
+             ' requested (PARAM,SM,YES), then please respecify'/
+             ' as PARAM,OLDSEQ.' $
+endif $
+if ( oldseq=-9999 ) then $
+   $  User did not input oldseq, pick appropiate default
+   oldseq=-1 $ 
+   $  Iterative solver with distibuted parallel
+   if ( GETSYS(NP,216)=1 and GETSYS(NP,231)>0 ) oldseq=5 $ 
+else IF ( SM='YES' and oldseq>-1 and 
+          not(GETSYS(NP,216)=1 and oldseq=5) ) THEN $
+   message //' user'/wrn/'message 9089 ('/sname/')' $
+   message //' PARAM,oldSEQ,>0 is ignored when param,sm,yes'/
+             ' is specified.'
+   oldseq=-1 $
+endiF $ oldseq=-9999
+IF ( SM='YES' and GETSYS(NP,216)=1 and GETSYS(NP,231)>0 ) THEN $
+   message //' user'/ftl/'message 9094 ('/sname/')' $
+   message //' PARAM,SM,YES, NASTRAN ITER=YES, and NASTRAN'/
+             ' SYSTEM(231)>0 are specified and this is not'/
+             ' supported.' $
+   message //' User action:  Change SM to NO or ITER to NO or '/
+             ' system(231) to 0' $
+   jump     rferr $
+endiF $
+EQUIVx   GEOM1/GEOM1Q/OLDSEQ $
+COND     NOSEQP,OLDSEQ $
+SEQP     GEOM1,GEOM2,GEOM4,EPT,,,,/
+         GEOM1Q,MATPARM,,,,,,/
+         V,Y,SEQOUT=0/OLDSEQ//V,Y,SUPER=0/V,Y,FACTOR=10000/
+         V,Y,MPCX=0/V,Y,START=0 $
+LABEL    NOSEQP $
+$
+SEP1X    ,,GEOM1q,GEOM2,GEOM4,,,/
+         EMAP,SGPDT,SCSTM/
+         S,N,NOSE//'      '//S,N,PARTRS//'XEID'///
+         false/TOLRSC $
+$
+GP1      GEOM1Q,GEOM2,,,,sgpdt,dynamics,,/
+         GPL,EQEXIN,GPDT,CSTM,BGPDT,SIL,,,,,/
+         S,N,LUSET/0/S,N,NOGPDT $
+COND     LOOPTOP,NOGPDT $
+GP2      GEOM2,EQEXIN,EPT,,,bgpdt,cstm,/ECT,/s,n,acoustic $
+IF ( ACOUSTIC=2 ) then $
+   MESSAGE  //' USER INFORMATION MESSAGE 9063 ('/sname/')' $
+   message  //' FLUID/STRUCTURE COUPLING IS IGNORED IN THIS'/
+              ' SOLUTION SEQUENCE.' $
+endif $ ACOUSTIC=2 
+gpjac    ect,bgpdt//s,n,jacdet $
+if ( jacdet=1 ) jump     rferr $
+IF (POST=0
+   ) DBC  BGPDT,GPL,GPDT,ECT,EQEXIN,MPT,CSTM,GEOM1,GEOM3,GEOM4,
+          EPT,,,,,,,,,//
+          'BGPDT'/'GPL'/'GPDT'/'ECT'/'EQEXIN'/'MPT'/'CSTM'/'GEOM1'/
+          'GEOM3'/'GEOM4'/'EPT'//////////
+          -1/DBCPATH/S,N,CP//icyclic/V,Y,GEOMU/V,Y,LOADU/
+          V,Y,POSTU/V,Y,DBCDIAG=0/V,Y,DBCCONV='XL'/V,Y,DBCOVWRT='YES' $
+$
+IF ( post=-2 and (OGEOM='YES' OR OGEOM=' ') ) THEN $
+   if ( omachpr='no' ) then $
+   $ backup V69 tables
+      equivx   gpdt/gpdt69/-1 $
+      equivx   cstm/cstm69/-1 $
+      equivx   bgpdt/bgpdt69/-1 $
+      delete   /gpdt,cstm,bgpdt,, $
+   $ create V68 tables with proper header name
+      makeold  gpdt69,cstm69,bgpdt69,,/gpdt,cstm,bgpdt,,/
+               'gpdt'/'cstm'/'bgpdt'///'gpdt'/'cstm'/'bgpdt' $
+      cstm='cstm68' $
+      gpdt='gpdt68' $
+      bgpdt='bgpdt68' $
+   endif $ omachpr='no'
+   OUTPUT2  CSTM,GPL,GPDT,bgpdt//0/OUNIT1x//OMAXR/cstm//gpdt/bgpdt $
+   if ( omachpr='no' ) then $
+      equivx   gpdt69/gpdt/-1 $
+      equivx   cstm69/cstm/-1 $
+      equivx   bgpdt69/bgpdt/-1 $
+   endif $ omachpr='no'
+ENDIF $ OGEOM='YES' OR OGEOM=' ' 
+if ( ounit1x>0 and ounit1x<>ounit2 and opost ) then $
+   OUTPUT2  //-9/OUNIT1x//OMAXR $
+   if ( POST=-1 ) OUTPUT2  //-1/OUNIT2//OMAXR $
+endif $
+COND     NOELT,PROUT $
+ELTPRT   ECT,,,,,,,,,,//V,Y,PROUT=-1 $
+LABEL    NOELT $
+COND     P1,JUMPPLOT $
+PLTHBDY  GEOM2,ECT,EPT,BGPDT,CSTM/PECT,PBGPDT/
+         S,N,NHBDY/V,Y,MESH='NO' $
+EQUIVx   ECT/PECT/NHBDY $
+equivx   BGPDT/PBGPDT/NHBDY $
+PLTSET   PCDB,PBGPDT,PECT/PLTSETX,PLTPAR,GPSETS,ELSETS/
+         S,N,NSIL/S,N,JUMPPLOT $
+PRTMSG   PLTSETX// $
+COND     P1,JUMPPLOT $
+PLOT     PLTPAR,GPSETS,ELSETS,CASECC,PBGPDT,,ECT,,/PLOTX1/
+         NSIL/LUSET/S,N,JUMPPLOT/S,N,PLTFLG/S,N,PFILE $
+PRTMSG   PLOTX1//$
+LABEL    P1 $
+GP3      GEOM3,bgpdt,GEOM2,edt,,,,,,/SLT,ETT/0/0/0/0 $
+TA1      ,,ECT,EPT,BGPDT,SIL,ETT,CSTM,,,,,/
+         EST,,GEI,GPECT,,,,,/
+         LUSET/-1/S,N,NOSIMP/1/S,N,NOGENL/S,N,GENEL $
+paraml   geom1//'bulk'//////'snorm'/s,n,snorm0 $
+if ( snorm>0.0 or (sNORM=0.0 and snorm0=-1) 
+   ) tasnp2   bgpdt,gpect,geom1,cstm,,,/
+              gpsnt/
+              Snorm/snormprt/-1/'seid' $
+COND     LSKPEMG,NOSIMP $
+COND     NOGPCT,GPECT $
+ELTPRT   ,,GPECT,BGPDT,,,,,,,,/ $
+LABEL    NOGPCT $
+PARAML   CASEcc//'DTI'/-1/371//S,N,elsum $
+estx=est $     
+if ( elsum=-1 and est=1 ) estx=2 $
+if ( estx>=0 ) ELTPRT   ,,,BGPDT,,EST,CSTM,mpt,dit,casecc,,/
+                        VELEM/ESTx//V,Y,WTMASS=1. $
+EMG      EST,CSTM,MPT,DIT,,,ett,,,,BGPDT,GPSNT,,,,,,,,,,,,,,,,,,,,,,,/
+         KELM,KDICT,MELM,MDICT,,,,,,,,,,/
+         S,N,NOKGGX/S,N,NOMGGX/0/S,N,NOK4GG//V,Y,COUPMASS/
+         //////////V,Y,K6ROT=100.0 $
+COND     LEMAK,NOKGGX $
+EMA      GPECT,KDICT,KELM,BGPDT,SIL,CSTM,,,/KGGX, $
+LABEL    LEMAK $
+COND     LEMAM,NOMGGX $
+EMA      GPECT,MDICT,MELM,BGPDT,SIL,CSTM,,,/MGGX,/-1/wtmass $
+LABEL    LEMAM $
+EMG      EST,CSTM,MPT,DIT,,,ett,,,,BGPDT,GPSNT,,,,,,,,,,,,,,,,,,,,,,,/
+         ,,,,BELM,BDICT,,,,,,,,/0/0/S,N,NOBGGX $
+COND     LEMAB,NOBGGX $
+EMA      GPECT,BDICT,BELM,BGPDT,SIL,CSTM,,,/BGGX, $
+LABEL    LEMAB $
+COND     LSKPEMG,NOK4GG $
+EMA      GPECT,KDICT,KELM,BGPDT,SIL,CSTM,,,/K4GG,/V,N,NOK4GG $
+LABEL    LSKPEMG $
+MGEN     CASECC,MATPOOL,EST,CSTM,bgpdt/
+         MCHI,MLAM,GEG,MAR,MCHI2,MLAM2/
+         LUSET/S,N,NOMGEN//WTMASS $
+if ( nomgen>-1 ) then $
+   PARAML    MCHI2//'PRES'////S,N,NOMCHI2 $                        
+   EQUIVX    MCHI/MCHI3/NOMCHI2 $
+   EQUIVX    MLAM/MLAM3/NOMCHI2 $
+   IF ( NOMCHI2>-1 ) THEN  $
+      PARAML   MCHI2//'TRAILER'/1/S,N,LEN2 $                           
+      PARAML   MCHI//'TRAILER'/1/S,N,LEN1 $                          
+      type parm,,i,n,length $
+      LENGTH=LEN1+LEN2 $
+      MATGEN   ,/MPART/6/LENGTH/LEN1/LEN2 $
+      TRNSP    MCHI/MCHIT $                                              
+      TRNSP    MCHI2/MCHI2T $                                            
+      MPYAD    MCHI,MCHIT,/MCHICHIT/////1 $                 
+      MPYAD    MLAM,MCHIT,/MLAMCHIT $                                    
+      MERGE    MCHICHIT,MCHI2T,MCHI2,,MPART,/MCHI3 $                     
+      MERGE    MLAMCHIT,,MLAM2,,MPART,/MLAM3/1 $                         
+   ENDIF $ 
+   DECOMP   MCHI3/LCHI,UCHI,,/S,N,KSYM/////S,N,SING///40 $           
+   if ( vmopt=1 ) then $
+      TRNSP    Geg/GEGT $
+      EQUIVX   GEGT/GEGT3/NOMCHI2 $        
+      IF ( NOMCHI2>-1 ) MERGE    GEGT,,,,,MPART/GEGT3/1 $   
+      FBS      LCHI,UCHI,GEGT3/BMAT/0 $
+      MPYAD    MLAM3,BMAT,/MEG $
+      MPYAD    Geg,MEG,/VMAT/////6 $
+      TRNSP    VMAT/VMATT $
+      ADD5     VMAT,VMATT,Mggx,,/Mggx1/.5/.5 $
+      equivx   mggx1/mggx/-1 $
+   endif $ vmopt=1
+endif $ momgen>-1
+MTRXIN   CASECC,MATPOOL,EQEXIN,,/
+         K2GG,M2GG,B2GG,,/
+         LUSET/S,N,NOK2GG/S,N,NOM2GG/S,N,NOB2GG///1 $
+EQUIVx   MGGX/MGG/NOM2GG $
+COND     LBLNOMX,NOM2GG $
+ADD      MGGX,M2GG/MGG/V,Y,CM1=(1.0,0.0)/V,Y,CM2=(1.0,0.0) $
+LABEL     LBLNOMX $
+PARAM    //'AND'/S,N,NOMGG=-1/NOMGGX/NOM2GG $
+COND     LGPWG,GRDPNT $
+GPWG     BGPDT,CSTM,,MGG,,/OGPWG/
+         V,Y,GRDPNT=-1/V,Y,WTMASS $
+OFP      OGPWG // $
+LABEL    LGPWG $
+PARAM    //'AND'/S,N,NOKGG=-1/NOKGGX/NOK2GG $
+PARAM    //'AND'/S,N,NOKGG/NOKGG/NOGENL $
+PARAM    //'AND'/S,N,NOBGG=-1/NOBGGX/NOB2GG $
+EQUIVx   KGGX/KGGY/NOK2GG $
+COND    LBLNOKX,NOK2GG $
+ADD      KGGX,K2GG/KGGY/V,Y,CK1=(1.0,0.0)/V,Y,CK2=(1.0,0.0) $
+LABEL    LBLNOKX $
+EQUIVx   KGGY/KGG/NOGENL $
+COND     LBL11,NOGENL $
+SMA3     GEI,/KGGZ/LUSET/NOGENL/-1 $
+ADD      KGGY,KGGZ/KGG//V,Y,CK3=(1.0,0.0) $
+LABEL    LBL11 $
+EQUIVx   BGGX/BGG/NOB2GG $
+COND     LBLNOBX,NOB2GG $
+ADD      BGGX,B2GG/BGG/V,Y,CB1=(1.0,0.0)/V,Y,CB2=(1.0,0.0) $
+LABEL    LBLNOBX $
+SETVAL   //S,N,NSKIP/0 $
+type parm,,char8,n,rgtype='kmm' $
+JUMP     LOOPTOP $  REQD TO AVOID UWM 27 SOL 3 AND 5 (NO LOOP BLOCK)
+LABEL    LOOPTOP $
+COND LNOGP,NOGPDT $
+$
+$         DISPLACEMENT SET DEFINITION
+$
+GP4      CASECC,GEOM4,EQEXIN,SIL,GPDT,BGPDT,CSTM,
+         ,,,geom2,,,gpsnt,geom1,/
+         RG,YgB,USETB,gpsntn,,/
+         LUSET/S,N,MPCF1/S,N,MPCF2/S,N,SINGLE/S,N,OMIT/S,N,REACT/
+         S,N,NSKIP/S,N,REPEAT/S,N,NOSET/S,N,NOL/S,N,NOA/V,Y,SUBID////
+         snormprt/s,n,newgpsn $
+if ( newgpsn ) equivx   gpsntn/gpsnts/-1 $
+PARAML   USETb//'USET'//////'S'/S,N,NOSSET $
+IF ( NOSSET=LUSET ) THEN $
+   EQUIVX    Ygb/Ysb/-1 $
+ELSE $
+   Upartn    USETb,Ygb/Ysb,,,/'G'/'S'//1 $
+ENDIF $ NOSSET=LUSET
+paraml   mgg//'null'////s,n,nullmgg $
+if ( nullmgg=-1 and react>-1 ) then $
+   message  //' user'/wrn/'message 9088 ('/sname/')' $
+   message  //
+     ' SUPORTi entries are present but no mass is defined.'/
+     ' therefore the inertia relief loads will not be'/
+     ' computed and the solution will only reflect the'/
+     ' applied loads.' $
+endif $ nullmgg=-1 and react>-1
+TYPE PARM,,CHAR8,Y,PSPCPID='NO' $
+IF ( JUMPPLOT>-1 AND PSPCPID='YES' ) THEN $
+   PLOT      PLTPAR,GPSETS,ELSETS,CASECC,BGPDT,USETB,ECT,,/
+             PLOTX1/
+             V,N,NSIL/V,N,LUSET/S,N,JUMPPLOT/S,N,PLTFLG/S,N,PFILE $
+   PRTMSG    PLOTX1 // $
+ENDIF $
+$
+$      MPC ELIMINATION
+$
+IF ( SM='YES' ) THEN $
+   IF ( OMIT>-1 ) THEN $
+      message  //' user'/wrn/'message 9084 ('/sname/')' $
+      message  //' SUBSETS OF the F-SET are IGNORED with the'/
+        ' supermodule i.e., ALL A-SET C-SET, ETC., OMITI BULK'/
+        ' DATA ENTRIES  IGNORED.' $
+      TABPRT   USETb,EQEXIN//'USET'/0/-1 $ PRINT ALL SETS
+   ENDIF $ omit>-1
+   EQUIVX   RG/KMM/-1 $
+   rgtype='rg' $
+   EQUIVx   KGG/KNN/-1 $
+   if ( react>-1 ) then $
+      message  //' user'/wrn/'message 9085 ('/sname/')' $
+      message  //' SUPORTi entries are present but inertia relief'/
+        ' cannot be performed with PARAM, SM, YES.  The SUPORT entries'/
+        ' will be processed similarly to single point constraints.' $
+   endif $
+   PARAML   USETb//'USET'//////'q'/S,N,NOqSET $
+   PARAML   CASECC//'DTI'/-1/150//S,N,DYNRED $
+   if ( dynred=-1 and noqset>0 ) then $
+      MESSAGE  //' USER'/ftl/'MESSAGE 9090 ('/sname/')' $
+      message  //' A DYNRED entry is selected and QSEti entries are'/
+        ' present but generalized dynamic reduction cannot be'/
+        ' performed with PARAM, SM, YES.' $
+      message //' USER Action:  remove the qseti entries.'
+      jump     rferr $
+   endif $
+$         non-iterative       dist. parallel
+   if ( getsys(np,216)=0 and getsys(np,231)>0 ) then $
+      trnsp    kgg/kggt $
+      add      kgg,kggt/kggs/.5/.5 $
+   else $
+      equivx   kgg/kggs/-1 $
+   endif $ getsys(np,216)=0 and getsys(np,231)>0 
+else $
+   PURGEx   /GM,,,,/MPCF1 $
+   EQUIVx   KGG/KNN/MPCF1 $
+   if ( mpcf2>-1 ) then $
+      UPARTN   USETB,KGG/KMG,,,/'G'/'M'/'N'/1 $
+      MCE1     USETB,RG,,/GM, $
+      MCE2     USETB,GM,KGG,,,/KNN,,, $
+      UPARTN   USETb,KGG/KMM,,,/'G'/'M'/'N' $
+   endif $
+ENDIF $
+$
+$       GRID POINT SINGULARITY PROCESSOR
+$
+GPSP     KNN,KMM,USETB,SIL,GPL,YSB,GEOM4,EQEXIN,,/USET,YS,,,/
+         S,N,SINGLE/V,Y,AUTOSPC='YES'/V,Y,PRGPST='YES'/V,Y,SPCGEN=0/
+         V,Y,EPZERO=1.E-8/0/S,N,SING/V,Y,EPPRT=1.E-8/
+         S,N,NOSET/S,N,NGERR/rgtype//-1 $
+PARAML    USET//'USET'//////'A'/S,N,NOASET/
+                            'B'/S,N,NOBSET/
+                            'C'/S,N,NOCSET/
+                            'G'/S,N,NOGSET/
+                            'L'/S,N,NOLSET/
+                            'O'/S,N,OMIT/
+                            'S'/S,N,SINGLE/
+                            'T'/S,N,NOTSET/
+                            'Q'/S,N,NOQSET/
+                            'R'/S,N,REACT/
+                            'V'/S,N,NOVSET $
+PARAM     //'EQ'/S,N,NOA/NOGSET/NOASET $
+PARAM     //'AND'/S,N,NOSET/NOA/REACT  $
+COND     NOPRUST,USETPRT $
+type parm,,i,n,usetselx $
+type parm,,i,y,usetsel $
+usetselx=usetsel $
+if ( usetsel>0 ) then $
+   message //' user'/wrn/'message 9109 (kcon)' $
+   message //' usetsel is greater than zero which'/ 
+             ' is obsolete.  usetsel will be'/
+             ' reset to -1 to print all sets.' $
+   message //' user action:  specify param,usetsel,0 and'/ 
+             ' set names on param,usetstr1 thru usetstr4.' $
+   usetselx=-1 $
+endif $ usetsel>0
+TABPRT   USET,EQEXIN//'USET'/V,Y,USETPRT=-1/USETSELx//
+         v,y,usetstr1/v,y,usetstr2/v,y,usetstr3/v,y,usetstr4 $
+LABEL    NOPRUST $
+COND     RFERR,NGERR $
+type parm,,logi,n,spcfnew,mpcforc $
+spcfnew=( NOSPC>-1 AND DYNSPCF='NEW' AND SINGLE>-1 ) $
+mpcforc=( NOQMG>-1 AND MPCF2>-1 ) $
+IF ( SM<>'YES' ) then $ 
+$
+$      GDR INPUT CHECKING
+$
+PARAML   CASECC//'DTI'/-1/150//S,N,DYNRED $
+PARAM    //'NOT'/S,N,NODYNRED/DYNRED $
+COND     DNOQSET,NOQSET $
+$
+$       A Q-SET EXISTS BUT NO O-SET EXISTS
+SETVAL   //S,N,ERRNO/4401 $
+COND     ERMSG,OMIT $
+JUMP     DNOLSET $
+LABEL    DNOQSET $
+$
+$       NO L-SET REMAINS AFTER CONSTRAINTS AND O-SET REMOVED
+SETVAL   //S,N,ERRNO/4402 $
+COND     ERMSG,NOLSET $
+$
+$       NO Q-SET SPECIFIED
+SETVAL   //S,N,ERRNO/4419 $
+COND     ERMSG,DYNRED $
+LABEL    DNOLSET $
+$
+$      SPC ELIMINATION
+$
+EQUIVx   KNN/KFF/SINGLE $
+COND     LBL3,SINGLE $
+UPARTN   USET,KNN/KFF,KSF,KFS,KSS/'N'/'F'/'S' $
+LABEL    LBL3  $
+EQUIVx   KFF/KTT/OMIT $
+COND     LBL5,OMIT $
+UPARTN   USET,KFF/KOO,,KOA,KAAB/'F'/'O'/'A' $
+EQUIVx   KOA/KOT/NOQSET $
+equivx   KAAB/KTT1/NOQSET $
+$
+$       GDR STIFFNESS PARTITIONING - SEE H/DA 4.1.2.1
+$
+COND      LNOTSET,NOQSET $
+COND      LNOTSET,NOTSET $
+$
+$                       --     --    !
+$                                    !   KAO
+$        [KFF] =   [    --     KTT1  !         ]
+$                     ---------------!-------
+$                       --     KOT   !   KOO
+$
+VEC       USET/VAQT/'A'/'Q'/'T' $
+PARTN     KOA,VAQT,/,,KOT,/1 $
+UPARTN    USET,KAAB/,,,KTT1/'A'/'Q'/'T' $
+LABEL     LNOTSET $
+$
+$       STATIC CONDENSATION
+$
+DCMP     USET,SIL,EQEXIN,KOO,,/LOO,,ORSEQ/
+         1/0/V,Y,BAILOUT/V,Y,MAXRATIO=1.E7/'O'/1.E-20/
+         //////S,N,SING/S,N,NBRCHG/S,N,NP $
+COND     RFERR,SING $
+FBS       LOO,,KOT/GO/1/-1 $
+MPYAD     KOT,GO,KTT1/KTT/1////6 $
+LABEL    LBL5 $
+$
+$       SUPORT DOF PARTITIONING
+$
+EQUIVx   KTT/KAA/NOQSET $
+EQUIVx   KTT/KLL/REACT $
+PURGEx   /DM,,,,/REACT $
+COND     LBL6,NOLSET $
+IF ( REACT>-1 ) UPARTN    USET,KTT/KLL,,KLR,KRR/'T'/'L'/'R' $
+IF ( getsys(np,216)<>1 ) THEN $
+   DCMP     USET,SIL,EQEXIN,KLL,,/LLL,,LRSEQ/
+            1/0/BAILOUT/MAXRATIO/'L'/1.E-20///////
+            S,N,SING/S,N,NBRCHG/S,N,err=0 $
+   cond     rferr,sing $
+$
+$       COMPUTE RIGID BODY TRANSFORMATION MATRIX
+$
+   IF ( REACT>-1 ) RBMG3    LLL,,KLR,KRR/DM $
+endIF $ getsys(np,216)<>1
+LABEL    LBL6 $
+$
+IF ( ERR<0 ) THEN $ INITIALIZED TO 0 AND COMPUTED BY DCMP
+   MESSAGE  //' USER'/ftl/'MESSAGE 9050 ('/sname/')' $
+   message  //
+ ' RUN TERMINATED DUE TO EXCESSIVE PIVOT RATIOS IN MATRIX KLL. ' $
+   MESSAGE //
+ ' USER ACTION:  CHANGE USER PARAMETERS MAXRATIO AND/OR BAILOUT.' $
+   jump     rferr $
+endif $
+$
+$      MPC ELIMINATION FROM MASS
+$
+EQUIVx   MGG/MNN/MPCF1 $
+COND     LBL2M,MPCF2 $
+MCE2     USET,GM,MGG,,,/MNN,,, $
+UPARTN   USET,MGG/MMG,,,/'G'/'M'/'N'/1 $
+LABEL    LBL2M $
+$
+$      SPC ELIMINATION FROM MASS
+$
+EQUIVx   MNN/MFF/SINGLE $
+COND     LBL3M,SINGLE $
+UPARTN   USET,MNN/MFF,MSF,,/'N'/'F'/'S' $
+LABEL    LBL3M $
+$
+$       F-SET PARTITIONING OF MASS
+$
+EQUIVx   MFF/MTT/OMIT $
+COND     LBL4M,OMIT $
+UPARTN    USET,MFF/MOO,,MOA,MAA1/'F'/'O'/'A' $
+$
+$       GDR MASS PARTITIONING
+$
+EQUIVx    MOA/MOT1/NOQSET $
+equivx    MAA1/MTT1/NOQSET $
+COND      MIKE1,NOQSET
+EQUIVx    MAA1/MQQ1/NOTSET $
+equivx    MOA/MOQ1/NOTSET $
+SETVAL    //S,N,QNOTNULL/0 $
+COND      MNOTSET,NOTSET $
+UPARTN    USET,MAA1/MQQ1,,MQT1,MTT1/'A'/'Q'/'T' $
+PARTN     MOA,VAQT,/MOQ1,,MOT1,/1 $
+PARAML    MQT1//'TRAILER'/5/S,N,QNOTNULL//S,N,NM $
+LABEL     MNOTSET $
+$
+$        CHECK FOR NULL Q-SET MASS MATRIX PARTITIONS - UFM 4404
+PARAM     //'ADD'/S,N,NP/QNOTNULL/0 $
+PARAML    MQQ1//'TRAILER'/5/S,N,QNOTNULL//S,N,NM $
+PARAM     //'ADD'/S,N,NP/NP/QNOTNULL $
+PARAML    MOQ1//'TRAILER'/5/S,N,QNOTNULL//S,N,NM $
+PARAM     //'ADD'/S,N,QNOTNULL/QNOTNULL/NP $
+PARAM     //'GT'/S,N,QNOTNULL/QNOTNULL/0 $
+SETVAL    //S,N,ERRNO/4404 $
+COND      RFERR,QNOTNULL $
+LABEL     MIKE1 $
+$
+$       GUYAN REDUCTION OF MASS 
+$
+MPYAD     MOO,GO,MOT1/MOT $
+MPYAD     MOT1,GO,MTT1/MTT2/1 $
+MPYAD     GO,MOT,MTT2/MTT/1////6 $
+LABEL    LBL4M $
+$
+$       SUPORT DOF PARTITIONING OF MASS
+$
+COND      M8NORSET,REACT $
+EQUIVx    MTT/MR/NOLSET $
+COND      M8NORSET,NOLSET $
+UPARTN    USET,MTT/MLL,,MLR,MRR/'T'/'L'/'R' $
+RBMG4    DM,MLL,MLR,MRR/MR $
+LABEL     M8NORSET $
+endif $ sm<>'yes'
+$           STATIC SOLUTION 
+$
+$      GENERATE STATIC LOAD VECTORS
+$									
+SETVAL    ////////////S,N,SOLTYPE/'STATICS' $
+LCGEN    CASECC,SLT,ETT,,/CASESX/0/soltype $
+SSG1     SLT,BGPDT,CSTM,,EST,MPT,ETT,EDT,MGG,CASEsx,DIT,
+         ,,,gpsnt,,,geom4,,,,,,,,/
+         PG,PTELEM,,,,/
+         V,N,LUSET/V,N,NSKIP $
+IF ( SM<>'YES' ) THEN $
+EQUIVX   PG/PL/NOSET $
+COND     LBL10,NOSET $
+$
+$       APPLY CONSTRAINTS TO STATIC LOAD VECTORS
+$
+SSG2     USET,GM,YS,KFS,GO,DM,PG,,/QR,PO,PS,PA,PL $         
+LABEL    LBL10 $
+$
+$       COMPUTE INERTIAL LOADS RESULTING FROM ACCELERATIONS
+$       DUE TO APPLIED LOADS ONLY IF R-SET EXISTS
+$
+EQUIVX   PL/PLI/REACT $
+EQUIVX   PO/POI/REACT $                      
+COND     LBL12,REACT $                                    
+EQUIVX   PL/PLI/NOMGG $
+EQUIVX   PO/POI/NOMGG $                      
+COND     LBL12,NOMGG $                                    
+SSG4     PL,QR,PO,MR,MLR,DM,MLL,MOO,MOA,GO,USET/PLI,POI/V,N,OMIT $
+LABEL    LBL12 $
+$
+$       SOLVE FOR INDEPENDENT DISPLACEMENTS, FIXED-BOUNDARY
+$       COMPONENT OF DEPENDENT DISPLACEMENTS, AND
+$       RESIDUAL VECTORS
+$
+if ( GETSYS(NP,216)=1 ) then $ iterative solver
+   SOLVIT   KLL,PLI,,,USET,KGG,GM,,,EDT,CASECC,,,,,,,,,,,,/
+            ULV,RULV,,/
+            v,y,ISIGN/v,y,IOPT/s,n,ITSEPS/v,y,ITSMAX/v,y,IPAD/
+            v,y,IEXT//NSKIP $
+else $
+   SSG3     LLL,,KLL,PLI,LOO,,KOO,POI,LRSEQ/
+            ULV,UOOV,RULV,RUOV,/V,N,OMIT/
+            V,Y,IRES=-1/V,N,NSKIP/S,N,EPSI $
+endif $ GETSYS(NP,216)=1
+COND     LBL9,IRES $
+MATGPR   GPL,USET,SIL,RULV//'L' $
+MATGPR   GPL,USET,SIL,RUOV//'O' $
+LABEL    LBL9 $
+$
+$       RECOVER G-SET DISPLACEMENTS, SINGLE POINT FORCES
+$       OF CONSTRAINT, AND APPEND STATIC LOAD VECTOR
+$             ==                                     ===
+SDR1     USET,PG,ULV,UOOV,YS,GO,GM,PS,KFS,KSS,QR,kgg,/UGV,PGG,QG/
+         V,N,NSKIP/SOLTYPE/NOSPC $
+IF ( NOQMG>-1 ) THEN $
+   PARAML   UGV//'TRAILER'/1/S,N,NCUG $
+   if ( mpcf2<0 ) then $
+      $ Generate null mpcforce matrix for proper alignment
+      PARAML   ULV//'TRAILER'/1/S,N,NLOADS $
+      matgen  ,/qmgi/7/luset/nloads $
+   else $
+      IF ( NCUG0>0 ) THEN $
+         $ 2nd, 3rd, 4th, etc. boundary condition
+         PARAML   ULV//'TRAILER'/1/S,N,NLOADS $
+         MATGEN   ,/COL/6/NCUG/NCUG0/NLOADS $
+         PARTN    UGV,COL,/,,,UGI/1 $
+      ELSE $
+         $ 1st boundary condition
+         EQUIVX   UGV/UGI/-1 $
+      ENDIF $ NCUG0>0 
+      UPARTN   USET,PG/PMI,,,/'G'/'M'/'N'/1 $
+      MPYAD    KMG,UGI,PMI/QM///-1 $
+      MPYAD    GM,QM,/QN/1/-1 $
+      UMERGE   USET,QM,QN/QMGI/'G'/'M'/'N' $
+   endif $ mpcf2<0
+   APPEND   QMGI,/QMG/2 $
+   NCUG0=NCUG $
+ENDIF $ NOQMG>-1 
+ELSE $ 
+   type parm,,char8,n,option='drct' $ 
+   type parm,,i,y,epsnum=10 $ number of solutions given epsilon check
+   if ( getsys(np,216)=1 ) option='ITER' $
+   if ( nskip=1 ) then $
+      STATICS  KGGs,PG,YS,RG,CASECC,USET,EQEXIN,SIL,,,EDT/
+               UGV,,,QG,QMG/
+               OPTION/ISIGN/IOPT/ITSMAX/ITSEPS/NSKIP/
+               nospc/noqmg/epsnum $
+      copy     PG/PGG/-1 $
+   else $ 
+      STATICS  KGGs,PG,YS,RG,CASECC,USET,EQEXIN,SIL,,,EDT/
+               UGI,,,QGI,QMGI/
+               OPTION/ISIGN/IOPT/ITSMAX/ITSEPS/NSKIP/
+               nospc/noqmg/epsnum $
+      APPEND   UGI,/UGV/2 $
+      APPEND   QGI,/QG/2 $
+      APPEND   QMGI,/QMG/2 $
+      APPEND   PG,/PGG/2 $
+   endif $ nskip=1 
+ENDIF $ SM<>'YES'
+JUMP     LBLGO $
+LABEL    LNOGP $
+JUMP     RFERR $
+LABEL    LBLGO $
+COND     LBL8,REPEAT $
+REPT     LOOPTOP,1000 $
+JUMP     RFERR $
+LABEL    LBL8  $
+EQUIVX   EDT/OLST1/-1 $
+EQUIVX   PGG/PG1/-1 $
+EQUIVX   CASEsx/CASEXX/-1 $
+SETVAL   //S,N,NODDRMM/0 $
+SDR2     CASEXX,CSTM,MPT,DIT,EQEXIN,,ETT,OLST1,BGPDT,PG1,
+         QG,UGV,EST,XYCDB,,,,gpsnt,deqatn,deqind,,pcompt,,edt,,,qmg, 
+         ,,,,,,,,,,,,,,,,,,,,/
+         OPG1,OQG1,OUGV1,OES1,OEF1,PUGV,,,oqmg1,,ostr1,,/
+         SOLTYPE/S,N,NOSORT2/v,y,nocomps=1 $
+$
+$       BEAM AND BAR INTERMEDIATE STRESSES AND FORCES
+$
+SDRX     CASEXX,OEF1,OES1,GEOM2,GEOM3,EST,CSTM,MPT,DIT,BGPDT,
+         OSTR1/OEF1X,OES1X,OSTR1X/S,N,NOX  $
+EQUIVx   OEF1/OEF1X/NOX $
+equivx   OES1/OES1X/NOX $
+EQUIVX   OSTR1/OSTR1X/NOX $
+if ( post=0 
+   ) DBC     CASExx,,,,,,,,,,,,,,,,,,,//'casecc'/
+           ///////////////////
+           -1/DBCPATH/S,N,CP/soltype/ICYCLIC/GEOMU/LOADU/POSTU/
+           DBCDIAG/DBCCONV/DBCOVWRT $
+$
+$       STRESSES AT GRID POINTS
+$
+PARAML   POSTCDB//'PRES'////S,N,NOPOST $
+COND     ENDPOST,NOPOST $
+PLTSET   POSTCDB,BGPDT,ECT/PLTP,PLTPARP,CPSETP,ELSETGP/V,N,NSIL $
+GPSTR1   POSTCDB,BGPDT,EsT,CSTM,ELSETGP,,,CASECC/
+         EGPSF/S,N,NOEGPSF $
+PARAML   EGPSF//'PRES'////S,N,NOPOST $
+COND     ENDPOST,NOPOST $
+dbstatus OES1X,ostr1//S,N,NOes1x/s,n,nostr1 $
+if ( noes1x>0
+   ) GPSTR2   CASECC,EGPSF,bgpdt,OES1X,/
+              OGS1,EGPSTR//S,N,NOEGPSTR/SOLTYPE $
+IF ( POST=0 ) DBC   GPL,EGPSTR,EGPSF,,,,,,,,,,,,,,,,,//
+      'GPL'/'GPS'/'SVF'//////////////////
+      -1/DBCPATH/S,N,CP/SOLTYPE/icyclic/V,Y,GEOMU/V,Y,LOADU/V,Y,POSTU/
+      V,Y,DBCDIAG/V,Y,DBCCONV/V,Y,DBCOVWRT $
+if ( nostr1>0
+   ) GPSTR2   CASECC,EGPSF,bgpdt,OSTR1,/OGSTR1,EGPSTRA///SOLTYPE/true $ 
+IF ( POST=0 ) DBC    EGPSTRA,gpl,,,,,,,,,,,,,,,,,,//
+      'GPS'/'gpl'///////////////////
+      -1/DBCPATH/S,N,CP/SOLTYPE/icyclic/V,Y,GEOMU/V,Y,LOADU/V,Y,POSTU/
+      V,Y,DBCDIAG/V,Y,DBCCONV/V,Y,DBCOVWRT $
+LABEL    ENDPOST $
+COND     LSORT1,NOSORT2 $
+SDR3     OUGV1,OPG1,OQG1,OEF1x,OES1x,OSTR1X/
+         OUGV2,OPG2,OQG2,OEF2,OES2,OSTR2/ $
+sdr3     oqmg1,,,,,/oqmg2,,,,, $
+sdr3     ogs1,ogstr1,,,,/ogs2,ogstr2,,,, $
+JUMP     SORT2OUT $
+LABEL    SORT2OUT $
+OFP      OUGV2//S,N,CARDNO $
+OFP      OPG2,OQG2,OEF2,OES2,OSTR2,oqmg2//S,N,CARDNO $
+OFP      ogs2,ogstr2//S,N,CARDNO $
+COND     LRAND,NOXYCDB $
+XYTRAN   XYCDB,OPG2,OQG2,OUGV2,OES2,OEF2,ostr2,oqmg2,,,,,,,/
+         XYPLTT/SOLTYPE/'PSET'/
+         S,N,PFILE/S,N,CARDNO/S,N,NOPLT $
+COND     LRAND,NOPLT $
+XYPLOT   XYPLTT // $
+LABEL    LRAND $
+LABEL    LSORT1 $
+PARAM    //'NOT'/S,N,SORT2/V,N,NOSORT2 $
+COND     LNOSORT1,SORT2 $
+OFP      OUGV1,OPG1,OQG1,OEF1X,OES1X,OSTR1X//S,N,CARDNO $
+OFP      OQMG1//S,N,CARDNO $
+OFP      OGS1,OGStr1//S,N,CARDNO $
+IF ( (POST=-1 or post=-2) AND OGPS='YES' 
+   ) OUTPUT2  OGS1//0/OUNIT2//OMAXR $
+LABEL    LNOSORT1
+$
+IF (POST=0) THEN $
+   DBC   OQG1,OUGV1,OES1X,OEF1X,,,,,,,,,,,,,,,//
+         'OQG'/'OUG'/'OES'/'OEF'/////////////////
+         -1/DBCPATH/S,N,CP/SOLTYPE/icyclic/V,Y,GEOMU/V,Y,LOADU/
+         V,Y,POSTU/V,Y,DBCDIAG/V,Y,DBCCONV/V,Y,DBCOVWRT $
+   DBC   OSTR1X,oqmg1,,,,,,,,,,,,,,,,,//
+         'OES'/'oqg'///////////////////
+         -1/DBCPATH/S,N,CP/SOLTYPE/icyclic/V,Y,GEOMU/V,Y,LOADU/
+         V,Y,POSTU/V,Y,DBCDIAG/V,Y,DBCCONV/V,Y,DBCOVWRT $
+ENDIF $ POST=0
+$
+IF ( OPOST AND OQG='YES' ) OUTPUT2  OQG1,oqmg1//0/OUNIT2//OMAXR $
+$
+IF ( OPOST AND OUG='YES' ) THEN $
+   IF ( POST=-2 AND GETSYS(Np,56)<>0 ) THEN $ 
+      EQUIVX   OUGV1/TOUGV1/-1 $ 
+      OUTPUT2  TOUGV1//0/OUNIT2//OMAXR $
+   ELSE IF ( NOT(post=-1 and PATVER>=3.) AND OUGCORD='BASIC' ) THEN $ 
+      dbstatus cstm//s,n,nocstm $
+      if ( nocstm>0 ) then $
+         matmod   cstm,sil,bgpdt,,,/transg,/5//-1 $
+         mpyad    transg,ugv,/ugvb $
+      else $
+         equivx   ugv/ugvb/-1 $
+      endif $
+      IF ( POST=-1 ) THEN $
+         SDR2     CASECC,CSTM,,,EQEXIN,,ett,OLST1,BGPDT,,,UGVB,
+                  ,,,,,,,,,,,edt,,,,,,,,,,,,,,,,,,,,,,,,/
+                  ,,OUGV1pat,,,,,,,,,,,/SOLTYPE $
+         OUTPUT2  OUGV1PAT//0/OUNIT2//OMAXR $
+      ELSE IF ( POST=-2 ) THEN $
+         IF ( soltype='REIG' ) THEN $ 
+            SDR2     CASECC,CSTM,,,EQEXIN,,ett,OLST1,BGPDT,,,UGVB,
+                     ,,,,,,,,,,,edt,,,,,,,,,,,,,,,,,,,,,,,,/
+                     ,,BOPHIG,,,,,,,,,,/SOLTYPE $
+            OUTPUT2  BOphig//0/OUNIT2//OMAXR $
+         ELSE $ 
+            SDR2     CASECC,CSTM,,,EQEXIN,,ett,OLST1,BGPDT,,,UGVB,
+                     ,,,,,,,,,,,edt,,,,,,,,,,,,,,,,,,,,,,,,/
+                     ,,BOUGV1,,,,,,,,,,/SOLTYPE $
+            OUTPUT2  BOUGV1//0/OUNIT2//OMAXR $
+         ENDIF $ APP1='REIG' 
+      ENDIF $
+   ELSE $
+      OUTPUT2  OUGV1//0/OUNIT2//OMAXR $
+   ENDIF $
+ENDIF $
+$
+IF ( POST=-1 AND PATVER>=3. AND OESx='YES' ) THEN $
+   OUTPUT2  OES1X//0/OUNIT2//OMAXR $
+else if ( OES='YES' AND 
+     ((POST=-1 AND NOT(PATVER>=3.)) OR POST=-2) ) THEN $ 
+   OUTPUT2  OES1//0/OUNIT2//OMAXR $ 
+ENDIF $
+$
+IF ( POST=-1 AND PATVER>=3. AND OEfx='YES' ) THEN $
+   OUTPUT2  OEF1x//0/OUNIT2//OMAXR $
+ELSE IF ( (POST=-1 AND NOT(PATVER>=3.)) OR POST=-2 ) THEN $ 
+   OUTPUT2  OEF1//0/OUNIT2//OMAXR $ 
+ENDIF $
+$
+IF ( OPOST AND OEE='YES' ) OUTPUT2  OSTR1X//0/OUNIT2//OMAXR $
+$
+IF ( ((POST=-1 AND PATVER>=3.) or post=-2) AND OPG='YES' 
+   ) OUTPUT2  OPG1//0/OUNIT2//OMAXR $
+$
+$  sort stress output
+$
+DTIIN     DTI,DTINDX/INDTA,,,,,,,,, $
+COND      LS1,S1 $
+STRSORT   OES1X,INDTA/OES1X1/
+          V,Y,NUMOUT=-2/V,Y,BIGER=0.0/V,Y,SRTOPT=0/V,Y,SRTELTYP=0 $
+OFP       OES1X1//S,N,CARDNO $
+LABEL     LS1 $
+$
+$  post-process stress output
+$
+IF ( CURV >= 0 ) THEN $  STRESS/STRAIN TRANSFORMATION TO GRID POINTS
+$                        OR MATL COORD SYSTEM
+   CURV     OES1X,MPT,CSTM,EST,BGPDT/OES1M,OES1G/OUTOPT/
+            OG/NINTPTS $
+   EQUIVX   OES1M/QES1M/ALWAYS $
+   EQUIVX   OES1G/QES1G/ALWAYS $
+   IF ( S1M >= 0 ) THEN  $
+      STRSORT  OES1M,INDTA/OES1M1/NUMOUT/BIGER/SRTOPT/SRTELTYP $
+      OFP      OES1M1//S,N,CARDNO $  PRINT STRESSES IN MATL COORD SYS
+   ENDIF $
+   IF ( S1G >= 0 ) THEN $
+      STRSORT  OES1G,INDTA/OES1G1/NUMOUT/BIGER/SRTOPT/SRTELTYP $
+      OFP      OES1G1//S,N,CARDNO $  PRINT STRESSES AT GRID POINTS
+   ENDIF $
+$
+$  post-process strain output
+$
+   DIAGON(23) $
+   CURV     OSTR1,MPT,CSTM,EST,BGPDT/OSTR1M,OSTR1G/OUTOPT/
+            OG/NINTPTS  $  STRAINS
+   DIAGOFF(23) $
+   EQUIVX   OSTR1M/QSTR1M/ALWAYS $
+   EQUIVX   OSTR1G/QSTR1G/ALWAYS $
+   IF ( S1AM >= 0 ) OFP  OSTR1M//S,N,CARDNO $ PRINT STRAINS IN
+$                                             MATL COORD SYS
+   IF ( S1AG >= 0 ) OFP  OSTR1G//S,N,CARDNO $ PRINT STRAINS AT
+$                                             GRID POINTS
+ENDIF $  STRESS/STRAIN TRANSFORMATION TO GRID POINTS OR MATL COORD SYSTEM
+$       
+$  xyplot of responses with grid points on abscissa
+$
+COND      NOXYPL,NOXYCDB $
+COND      NOXYPL,CURVPLOT $
+CURVPLOT  EQEXIN,BGPDT,EDT,XYCDB,OPG1,OQG1,OUGV1,OES1G,/
+          OPG2X,OQG2X,OUG2X,OES2X,/V,Y,DOPT=0 $
+XYTRAN    XYCDB,OPG2X,OQG2X,OUG2X,OES2X,,,,,,,,,,/XYPLTS/'SET1'/'PSET'/
+          S,N,PFILE/S,N,CARDNO/S,N,NP $
+COND      NOXYPL,NP $
+XYPLOT    XYPLTS// $
+LABEL     NOXYPL $
+$
+COND     P2,NODDRMM $
+COND     LNOEDR,GPFDR $
+GPFDR    CASEXX,UGV,KELM,KDICT,ECT,EQEXIN,GPECT,PG1,QG,BGPDT,olst1,CSTM,
+         VELEM,PTELEM,qmg,,,,,,,,,,,,/ONRGY1,OGPFB1,,,,,,,/
+         SOLTYPE/V,Y,TINY $ 
+COND     LNOESE,ESE $
+OFP      ONRGY1//S,N,CARDNO $
+LABEL    LNOESE $
+COND     LNOGPF,GPFO $
+COND     LNOGPF,NOGPF $
+OFP      OGPFB1 // $
+LABEL    LNOGPF $
+IF ( (POST=-1 or post=-2) AND OGPF='YES' 
+   ) OUTPUT2  OGPFB1//0/OUNIT2//OMAXR $
+$
+IF ( OPOST AND OESE='YES' ) OUTPUT2  ONRGY1//0/OUNIT2//OMAXR $
+$
+IF (DBCCONV='XL' AND POST=0 ) DBC ONRGY1,OGPFB1,,,,,,,,,,,,,,,,,,//
+                  'OESE'/'OGPF'///////////////////
+                  -1/DBCPATH/S,N,CP/SOLTYPE/icyclic/V,Y,GEOMU/V,Y,LOADU/
+                  V,Y,POSTU/V,Y,DBCDIAG/V,Y,DBCCONV/V,Y,DBCOVWRT $
+$
+PARAM    //'AND'/S,N,SKPEDR/V,Y,NOELOF=-1/V,Y,NOELOP=-1 $
+COND     LNOEDR,SKPEDR $
+ELFDR    OGPFB1,GPECT,CSTM,SIL,GPL,BGPDT/OELOF1,OELOP1/
+         V,Y,NOELOF/V,Y,NOELOP$
+COND     LNOELF,NOELOF $
+OFP      OELOF1 // $
+LABEL    LNOELF $
+COND     LNOEDR,NOELOP $
+OFP      OELOP1 // $
+LABEL    LNOEDR $
+$
+$  STRESS RECOVERY ON INDIVIDUAL
+$    PLIES FOR LAYERED COMPOSITE ELEMENTS.
+$
+COND     LBLCOMP,NOCOMPs $
+   PARAML   CASExx//'DTI'/-1/23//S,N,Stress $
+   PARAML   CASExx//'DTI'/-1/220//S,N,Strain $
+   if ( stress=-1 ) then $
+      SDR2     CASEXX,CSTM,MPT,DIT,EQEXIN,SIL,ETT,OLST1,BGPDT,
+               ,,UGV,EST,XYCDB,,,,gpsnt,deqatn,deqind,,pcompt,,edt,,,, 
+               ,,,,,,,,,,,,,,,,,,,,/ 
+               ,,,,OEF1a,,,,,,OES1A,,/
+               SOLTYPE/S,N,NOS/2 $ 
+      SDRCOMP  CASEXX,MPT,EPT,ETT,EST,OES1A,OEF1a,DIT,
+               BGPDT,pcompt,/
+               ES1C,EFIT,,,,,,/0 $ laminar stresses
+      STRSORT  ES1C,INDTA/OES1C/V,Y,NUMOUT1=-2/V,Y,BIGER1=0.0 $
+      STRSORT  EFIT,INDTA/OEFIT/V,Y,NUMOUT2=-2/V,Y,BIGER2=0.0 $
+      OFP      OES1C,OEFIT//S,N,CARDNO $
+      IF ( ((POST=-1 AND PATVER>=3.) OR POST=-2) AND 
+           OCMP='YES') THEN $ 
+         OUTPUT2  OES1C//0/OUNIT2//OMAXR $ 
+         IF ( POST=-2 ) OUTPUT2  OEFIT//0/OUNIT2//OMAXR $ 
+      ENDIF $ 
+   endif $ stress=-1 
+   if ( strain=-1 ) then $
+      SDR2     CASEXX,CSTM,MPT,DIT,EQEXIN,SIL,ETT,OLST1,BGPDT,
+               ,,UGV,EST,XYCDB,,,,gpsnt,deqatn,deqind,,pcompt,,edt,,,, 
+               ,,,,,,,,,,,,,,,,,,,,/
+               ,,,,OEF1ax,,,,,,oes1ax,,/
+               SOLTYPE/S,N,NOS/3 $ 
+      SDRCOMP  CASEXX,MPT,EPT,ETT,EST,OES1Ax,OEF1ax,DIT,
+               BGPDT,pcompt,/
+               oStr1C,EFITx,,,,,,/1 $ laminar strains
+      OFP      OStr1C//S,N,CARDNO $
+      IF ( ((POST=-1 AND PATVER>=3.) OR POST=-2) AND 
+           OCMP='YES') OUTPUT2  OStr1C//0/OUNIT2//OMAXR/'oes' $ 
+   endif $ strain=-1 
+LABEL    LBLCOMP $
+COND     P2,JUMPPLOT $
+PLTSET   PCDB,BGPDT,ECT/PSMES,PLTPAP,GPSETP,ELSETP/S,N,DSIL $
+PRTMSG   PSMES// $
+PLOT     PLTPAP,GPSETP,ELSETP,CASEXX,BGPDT,PUGV,PUGV,GPECT,OES1X/
+         PLOTX2/DSIL/LUSET/JUMPPLOT/PLTFLG/S,N,PFILE $
+PRTMSG   PLOTX2// $
+LABEL    P2 $
+TYPE PARM,,CHAR8,Y,POLOAD='NO',PSPCF='NO' $
+IF ( JUMPPLOT>-1 AND POLOAD='YES' ) THEN $
+   VECPLOT  PG1,BGPDT,EQEXIN,CSTM,CASEXX,,,,/
+            PPG,,,,/V,Y,GRDPNT/0/-1 $
+   PLOT     PLTPAR,GPSETS,ELSETS,CASEXX,BGPDT,PPG,,GPECT,/
+            PLOTX4/NSIL/LUSET/JUMPPLOT/PLTFLG/S,N,PFILE $
+   PRTMSG   PLOTX4// $
+ENDIF $
+IF ( JUMPPLOT>-1 AND PSPCF='YES' ) THEN $
+   VECPLOT  QG,BGPDT,EQEXIN,CSTM,CASEXX,,,,/
+            QQG,,,,/V,Y,GRDPNT/0/-1 $
+   PLOT     PLTPAR,GPSETS,ELSETS,CASEXX,BGPDT,QQG,,GPECT,/
+            PLOTX5/NSIL/LUSET/JUMPPLOT/PLTFLG/S,N,PFILE $
+   PRTMSG   PLOTX5// $
+ENDIF $
+JUMP     FINIS $
+LABEL    RFERR $
+PRTPARM  ////1 $
+JUMP     FINIS $
+LABEL    ERMSG $
+PRTPARM  //ERRNO/'DMAP' $
+LABEL    FINIS $
+IF ( POST<0 AND OTAPE2=0 ) OUTPUT2  //-9/OUNIT2//OMAXR $
+END  $

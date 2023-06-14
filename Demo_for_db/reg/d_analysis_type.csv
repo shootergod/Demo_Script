@@ -1,0 +1,11 @@
+1,Statics
+2,Normal modes (real eigenvalues)
+3,Differential stiffness 0 (obsolete)
+4,Differential stiffness 1 (obsolete)
+5,Frequency response
+6,Transient response
+7,Pre-buckling (obsolete)
+8,Buckling
+9,Complex eigenvalues
+10,Nonlinear statics
+11,Geometric nonlinear statics

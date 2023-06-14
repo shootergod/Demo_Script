@@ -1,79 +1,23 @@
-# # ============================================================
-# # ============================================================
-# # ============================================================
-# # ============================================================
-# # ============================================================
-# # ============================================================
-# # ============================================================
-# # ============================================================
-# # ============================================================
-# # ============================================================
-# # ============================================================
-# # ============================================================
-
-# from tkinter import *
-# import calendar
-# from tkinter import *
-# import calendar
-
-# root = Tk()
-# # root.geometry("400x300")
-# root.title("Calendar")
-# root = Tk()
-# # root.geometry("400x300")
-# root.title("Calendar")
-
-# # Function
-
-# def text():
-#     month_int = int(month.get())
-#     year_int = int(year.get())
-#     cal = calendar.month(year_int, month_int)
-#     textfield.delete(0.0, END)
-#     textfield.insert(INSERT, cal)
-
-# # Creating Labels
-# label1 = Label(root, text="Month:")
-# label1.grid(row=0, column=0)
-
-# label2 = Label(root, text="Year:")
-# label2.grid(row=0, column=1)
-
-# # Creating spinbox
-# month = Spinbox(root, from_=1, to=12, width=8)
-# month.grid(row=1, column=0, padx=5)
-
-# year = Spinbox(root, from_=2000, to=2100, width=10)
-# year.grid(row=1, column=1, padx=10)
-
-# # Creating Button
-# button = Button(root, text="Go", command=text)
-# button.grid(row=1, column=2, padx=10)
-
-# # Creating Textfield
-# textfield = Text(root, width=25, height=10, fg="red")
-# textfield.grid(row=2, columnspan=2)
-
-# root.mainloop()
-
-
-
-a = '123	456'
-print(a.find('\t'))
-
-a = ['111', '222', '333']
-for line in a:
-    line = '2'
-
-print(a)
-
-a = 'or = "#66c2a5"'
-print(a)
-
-import re
-
-b = re.search('"#[0-9a-f]{6}"', a).group()
-
-a = '123	456'
-print(a.find('\t'))
-print(b)
+import os  
+import glob  
+  
+# 指定要处理的文件夹路径  
+folder_path = r'C:\Users\user\Desktop\nes_wudi_itmop.com\无敌nes游戏精选'  
+  
+# 指定要添加的前缀  
+prefix = 'huji_'  
+  
+# 使用glob模块遍历文件夹下的所有文件 
+count = 0 
+for filename in glob.glob(os.path.join(folder_path, '*')):  
+    # 获取文件名（不包括路径）  
+    filename = os.path.basename(filename)  
+    # 添加前缀并重命名文件  
+    count += 1
+    if len(str(count)) == 1:
+        ind = '00' + str(count) + '_'
+    elif len(str(count)) == 2:
+        ind = '0' + str(count) + '_'
+    fp0 = os.path.join(folder_path, filename)
+    fp1 = os.path.join(folder_path, prefix + ind + filename)
+    os.rename(fp0, fp1)

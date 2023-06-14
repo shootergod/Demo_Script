@@ -1,0 +1,5 @@
+"MOD(TCODE, 1000)",TCODE/1000,ELTYPE,NUMWDE,SCODE,THERMAL,ACFLAG,,repeat_num,repeat_range,grids,vals,components,ekey,cid,ctype,nodef,ply
+1,0,,8,,0,0,,1,2/8,,3/4/5/6/7/8,Dx/Dy/Dz/Drx/Dry/Drz,1,,,,
+1,1,,,,0,0,,1,2/8,,3/4/5/6/7/8,Dx/Dy/Dz/Drx/Dry/Drz,,,,,
+5,0,39,,0,0,,,5,5/25,5,6/14/20/7/15/21,Ex/Ey/Ez/Exy/Eyz/Exz,1,2,3,4,
+5,0,95,,0,0,,,1,2/7,,3/4/5/7/6,Ex/Ey/Exy/Eyz/Exz,1,,,,2

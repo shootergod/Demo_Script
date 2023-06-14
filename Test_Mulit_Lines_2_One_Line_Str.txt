@@ -1,0 +1,17 @@
+The use of vectors, matrices, and tensors is of fundamental importance in engineering 
+analysis because it is only with the use of these quantities that the complete solution process 
+can be expressed in a compact and elegant manner. The objective of this chapter is to 
+present the fundamentals of matrices and tensors, with emphasis on those aspects that are 
+important in finite element analysis. 
+From a simplistic point of view, mattices can simply be taken as ordered arrays of 
+numbers that are subjected to specific rules of addition, multiplication, and so on. It is of 
+course important to be thoroughly familiar with these rules, and we review them in this 
+chapter. 
+However, by far more interesting aspects of matrices and matrix algebra are recog- 
+nized when we study how the elements of matrices are derived in the analysis of a physical 
+problem and why the rules of matrix algebra are actually applicable. In this context, the use 
+of tensors and their matrix representations are important and provide a most interesting 
+subject of study. 
+Of course, only a rather limited discussion of matrices and tensors is given here, but 
+we hope that the focused practical treatment will provide a strong basis for understanding 
+the finite element formulations given later. 

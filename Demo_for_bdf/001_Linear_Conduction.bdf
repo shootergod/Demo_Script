@@ -1,0 +1,131 @@
+$
+$ ================================================================================
+$ Executive Control Section
+$ ================================================================================
+$
+
+$ Specifies a comment.
+ID MSC-NASTRAN V68
+
+$ Specifies the solution sequence or main subDMAP to be executed.
+SOL 153 
+
+$ Sets the maximum CPU and I/O time. [in minutes]
+TIME 10
+
+$ Designates the end of the Executive Control Section.
+CEND
+
+$ 
+$ ================================================================================
+$ Case Control Section
+$ ================================================================================
+$ 
+$ Defines a character string to appear on the first heading line of 
+$ each page of MSC Nastran printer output.
+TITLE = EXAMPLE 1a
+$ Specifies the type of analysis being performed for the current SUBCASE/STEP/SUBSTEP
+ANALYSIS = HEAT 
+
+$ 
+$ ============================================================
+$ output 
+$ ============================================================
+$ 
+$ Requests the form and type of temperature output.
+THERMAL = ALL
+$ Requests the form and type of gradient and flux output in heat transfer analysis.
+FLUX = ALL
+$ Requests the form and type of single point force of constraint vector output.
+SPCF = ALL
+$ Requests the form and type of applied load vector output.
+OLOAD = ALL
+
+$ 
+$ ================================================================================
+$ Case Control Section
+$ ================================================================================
+$ 
+$ Selects a single point constraint set to be applied.
+SPC = 10
+$ Set initial temperature
+TEMP(INIT) = 20
+$ Selects the parameters used for nonlinear static analysis.
+NLPARM = 100
+
+
+
+$ 
+$ ================================================================================
+$ Bulk Data Section
+$ ================================================================================
+$ 
+
+$ 
+BEGIN BULK
+
+$ Define a nlparm, id = 100, others default
+NLPARM,100
+$
+$ GRID, ID, CP, X1, X2, X3, CD, PS, SEID
+$ 
+$ ID:   Grid point identification number. 
+$       (0 < Integer < 100,000,000, see Remark 6.)
+$ CP:   Identification number of coordinate system in which the location of the grid point is defined. 
+$       (Integer > 0 or blank*)
+$ X1, X2, X3: Location of the grid point in coordinate system CP. 
+$             (Real; Default = 0.0)
+$ CD:   Identification number of coordinate system in which the 
+$       displacements, degrees-of-freedom, constraints, and 
+$       solution vectors are defined at the grid point. 
+$       (Integer > -1 or blank, see Remark 3.)*
+$ PS:   Permanent single-point constraints associated with the grid point. 
+$       (Any of the Integers 1 through 6 with no embedded blanks, or blank*.)
+$ SEID: Superelement identification number. (Integer > 0; Default = 0)
+$ 
+$ *See the GRDSET entry for default options for the CP, CD, PS, and SEID fields.
+$ 
+GRID,1,,0.0,0.0,0.0
+GRID,2,,0.1,0.0,0.0
+GRID,3,,0.2,0.0,0.0
+GRID,4,,0.3,0.0,0.0
+GRID,5,,0.4,0.0,0.0
+GRID,6,,0.5,0.0,0.0
+
+$
+$ CROD, EID, PID, G1, G2
+$ 
+$ EID:    Element identification number. (0 < Integer < 100,000,000)
+$ PID:    Property identification number of a PROD entry. (Integer > 0; Default = EID)
+$ G1, G2: Grid point identification numbers of connection points. (Integer > 0; G1 <> G2 )
+
+CROD,1,5,1,2
+CROD,2,5,2,3
+CROD,3,5,3,4
+CROD,4,5,4,5
+CROD,5,5,5,6
+
+$ 
+$ PROD, PID, MID, A, J, C, NSM
+$ 
+$ Defines the properties of a rod element (CROD entry).
+PROD,5,15,.0078540
+
+$ 
+$ MAT4, MID, K, CP, Ro, H, HGEN, REFENTH, TCH, TDELTA, QLAT
+$ 
+MAT4,15,204.0
+$
+$ SPC, SID, G1, C1, D1, G2, C2, D2
+$ 
+SPC,10,1,,1300.0
+SPC,10,6,,300.0
+
+$ 
+$ TEMPD, SID1, T1, SID2, T2, SID3, T3, SID4, T4
+$ 
+$ Defines a temperature value for all grid points of the structural model that 
+$ have not been given a temperature on a TEMP or TEMPN1 (for heat transfer analysis) entries.
+TEMPD,20,1300.0
+$
+ENDDATA

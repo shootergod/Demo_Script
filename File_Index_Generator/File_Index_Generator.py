@@ -3,6 +3,7 @@
 # ================================================================================
 import os
 import sys
+import shutil  
 
 ScriptPath = os.path.abspath(__file__)
 ScriptDir = os.path.dirname(ScriptPath)
@@ -146,13 +147,14 @@ def StrListSort(str_list: list, dic_py: dict = None, dic_bh: dict = None):
 # ============================================================
 if __name__ == '__main__':
     pc_path = 'E:\Video_Class'
-    start_path = 'F:\D4T_to_D2T\Video_Class'
+    hd_path = 'F:\D4T_to_D2T\Video_Class'
 
-    rst_fp = os.path.join(pc_path, 'file_index.txt')
+    rst_fp_0 = os.path.join(pc_path, 'file_index.txt')
+    rst_fp_1 = os.path.join(hd_path, 'file_index.txt')
 
     item_lists = []
 
-    for root, dirs, files in os.walk(top=start_path):
+    for root, dirs, files in os.walk(top=hd_path):
         for dir in dirs:
             # print(' Dir : {}'.format(os.path.join(root, dir)))
             item_lists.append(os.path.join(root, dir))
@@ -162,10 +164,12 @@ if __name__ == '__main__':
 
     StrListSort(item_lists)
 
-    with open(rst_fp, 'w', encoding='utf-8') as fp:
+    with open(rst_fp_0, 'w', encoding='utf-8') as fp:
         fp.writelines('\n'.join(item_lists))
 
-
+    
+  
+    shutil.copy2(rst_fp_0, rst_fp_1)
     print('ok')
 
     # for root, dirs, files in os.walk(top=start_path):

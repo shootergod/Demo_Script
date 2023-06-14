@@ -1,0 +1,40 @@
+1,OUG,Displacement vector
+2,OPG,Load vector
+3,OQG,SPCforce vector
+4,OEF,Element force (or flux)
+5,OES,Element stress(or strain)
+6,LAMA,Eigenvalue summary
+7,OUG,Eigenvector
+8,none,Grid point singularity table (obsolete)
+9,OEIGS,Eigenvalue analysis summary
+10,OUG,Velocity vector
+11,OUG,Acceleration vector
+12,OPG,Nonlinear force vector
+13,OGPWG,Grid point weight generator
+14,OUG,Eigenvector (solution set)
+15,OUG,Displacement vector (solution set)
+16,OUG,Velocity vector (solution set)
+17,OUG,Acceleration vector (solution set)
+18,OEE,Element strain energy
+19,OGF,Grid point force balance
+20,OES,Stresses at grid points (from the CURV module)
+21,OES,Strain/curvature at grid points
+22,OELOF1,Element internal forces and moments
+23,OELOP1,Summation of element oriented forces on adjacent elements
+24,OEP,Element pressures
+25,OEF,Composite failure indices
+26,OGS,Grid point stresses (surface)
+27,OGS,Grid point stresses (volume -- direct)
+28,OGS,Grid point stresses (volume -- principal)
+29,OGS,Element stress discontinuities (surface)
+30,OGS,Element stress discontinuities (volume -- direct)
+31,OGS,Element stress discontinuities (volume -- principal)
+32,OGS,Grid point stress discontinuities (surface)
+33,OGS,Grid point stress discontinuities (volume -- direct)
+34,OGS,Grid point stress discontinuities (volume -- principal)
+35,OGS,Grid point stresses (plane strain)
+36,OEE,Element kinetic energy
+37,OEE,Element energy loss
+38,OMM,MAXMIN summary
+39,OQG,MPC forces
+40,OGPKE,Grip point kinetic energy
