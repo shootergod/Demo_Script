@@ -78,6 +78,12 @@ class Tree():
                 queue.append(child)
         return rst
 
+    def __print_map(self):
+        info_master = self.get_name()
+        info_slave = ', '.join([node.get_name() for node in self.__children])
+        info = '{} -> [{}]'.format(info_master, info_slave)
+        print(info)
+
     def __search_node(self, key, verbose: bool = False):
         if verbose:
             print('Search Node: |{}|'.format(self.get_name()))
@@ -156,6 +162,15 @@ class Tree():
     def get_children(self):
         return self.__children
 
+    def get_name(self):
+        return str(self.__data)
+
+    def has_children(self):
+        return True if self.__children else False
+
+    def get_children(self):
+        return self.__children
+
     def get_level(self):
         self.__update_level()
         return self.__level
@@ -175,11 +190,7 @@ class Tree():
         self.__print_title('Search Finish ... Target: {}'.format(node_name))
         return rst
 
-    def __print_map(self):
-        info_master = self.get_name()
-        info_slave = ', '.join([node.get_name() for node in self.__children])
-        info = '{} -> [{}]'.format(info_master, info_slave)
-        print(info)
+
 
     def traverse(self, walk_type: str=BFS):
         if walk_type == Tree.BFS:
