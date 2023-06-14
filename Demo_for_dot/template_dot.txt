@@ -7,78 +7,78 @@ digraph G {
     //ranksep=1.3;
 
     node [style=filled, fillcolor = "#66c2a5"]
-sytleDefineField1
+label_define_field_1
     node [style=filled, fillcolor = "#fc8d62"]
-sytleDefineField2
+label_define_field_2
     node [style=filled, fillcolor = "#8da0cb"]
-sytleDefineField3
+label_define_field_3
     node [style=filled, fillcolor = "#e78ac3"]
-sytleDefineField4
+label_define_field_4
     node [style=filled, fillcolor = "#a6d854"]
-sytleDefineField5
+label_define_field_5
     node [style=filled, fillcolor = "#ffd92f"]
-sytleDefineField6
+label_define_field_6
     node [style=filled, fillcolor = "#e5c494"]
-sytleDefineField7
+label_define_field_7
     node [style=filled, fillcolor = "#ffffb3"]
-sytleDefineField8
+label_define_field_8
     node [style=filled, fillcolor = "#b3b3b3"]
-sytleDefineField9
+label_define_field_9
     node [style=filled, fillcolor = "#66c2a5"]
-sytleDefineField10
+label_define_field_10
     node [style=filled, fillcolor = "#fc8d62"]
-sytleDefineField11
+label_define_field_11
     node [style=filled, fillcolor = "#8da0cb"]
-sytleDefineField12
+label_define_field_12
     node [style=filled, fillcolor = "#a6d854"]
-sytleDefineField13
+label_define_field_13
     node [style=filled, fillcolor = "#ffd92f"]
-sytleDefineField14
+label_define_field_14
     node [style=filled, fillcolor = "#e5c494"]
-sytleDefineField15
+label_define_field_15
     node [style=filled, fillcolor = "#ffffb3"]
-sytleDefineField16
+label_define_field_16
     node [style=filled, fillcolor = "#ffffb3"]
-sytleDefineField17
+label_define_field_17
     node [style=filled, fillcolor = "#b3b3b3"]
-sytleDefineField18
+label_define_field_18
 
 
     //  level 01 
-streamFlow1
+linkage_define_field_1
     //  level 02
-streamFlow2
+linkage_define_field_2
     //  level 03
-streamFlow3
+linkage_define_field_3
     //  level 04
-streamFlow4
+linkage_define_field_4
     //  level 05
-streamFlow5
+linkage_define_field_5
     //  level 06
-streamFlow6
+linkage_define_field_6
     //  level 07
-streamFlow7
+linkage_define_field_7
     //  level 08
-streamFlow8
+linkage_define_field_8
     //  level 09
-streamFlow9
+linkage_define_field_9
     //  level 10 
-streamFlow10
+linkage_define_field_10
     //  level 11
-streamFlow11
+linkage_define_field_11
     //  level 12
-streamFlow12
+linkage_define_field_12
     //  level 13
-streamFlow13
+linkage_define_field_13
     //  level 14
-streamFlow14
+linkage_define_field_14
     //  level 15
-streamFlow15
+linkage_define_field_15
     //  level 16
-streamFlow16
+linkage_define_field_16
     //  level 17
-streamFlow17
+linkage_define_field_17
     //  level 18
-streamFlow18
+linkage_define_field_18
 
 }

@@ -1,21 +1,22 @@
 # ============================================================
 # Import
 # ============================================================
-from enum import Enum
 
-
-# ============================================================
-# Class
-# ============================================================
-class TV(Enum):
-    DFS = 'dfs'
-    BFS = 'bfs'
 
 
 # ============================================================
 # Class
 # ============================================================
 class Tree():
+    # ==================================================
+    # Constant
+    # ==================================================
+    DFS = 'dfs'
+    BFS = 'bfs'
+
+    # ==================================================
+    # Init
+    # ==================================================
     def __init__(self, parent=None, data=None):
         self.__parent: Tree = parent
         self.__children: list[Tree] = []
@@ -43,8 +44,7 @@ class Tree():
     # ==================================================
     # Private Group
     # ==================================================
-    def __name(self):
-        return str(self.__data)
+
 
     def __is_root(self):
         return True if self.__parent is None else False
@@ -80,32 +80,32 @@ class Tree():
 
     def __search_node(self, key, verbose: bool = False):
         if verbose:
-            print('Search Node: |{}|'.format(self.__name()))
+            print('Search Node: |{}|'.format(self.get_name()))
 
         # self-test
-        if self.__name() == key:
+        if self.get_name() == key:
             if verbose:
-                print('|{}| -> Yes! from Main.'.format(self.__name()))
+                print('|{}| -> Yes! from Main.'.format(self.get_name()))
             return self
         else:
             if verbose:
-                print('|{}| ->  No! from Main.'.format(self.__name()))
+                print('|{}| ->  No! from Main.'.format(self.get_name()))
 
         # goto children
         for child in self.__children:
             if verbose:
                 print('Go To Children Loop by Caller: |{}| -> |{}|'.format(
-                    child.__parent.__name(), child.__name()))
+                    child.__parent.get_name(), child.get_name()))
             temp: Tree = child.__search_node(key, verbose=verbose)
             if temp is not None:
                 if verbose:
                     print(
                         '|{}| -> Yes! from Children Loop - within Loop Caller: |{}|'
-                        .format(temp.__name(), temp.__parent.__name()))
+                        .format(temp.get_name(), temp.__parent.get_name()))
                 return temp
 
         if verbose:
-            print('|{}| -> Not Found from Main.'.format(self.__name()))
+            print('|{}| -> Not Found from Main.'.format(self.get_name()))
         return None
 
     # ==================================================
@@ -147,6 +147,15 @@ class Tree():
     # ==================================================
     # Public Group - OK
     # ==================================================
+    def get_name(self):
+        return str(self.__data)
+
+    def has_children(self):
+        return True if self.__children else False
+
+    def get_children(self):
+        return self.__children
+
     def get_level(self):
         self.__update_level()
         return self.__level
@@ -167,23 +176,23 @@ class Tree():
         return rst
 
     def __print_map(self):
-        info_master = self.__name()
-        info_slave = ', '.join([node.__name() for node in self.__children])
+        info_master = self.get_name()
+        info_slave = ', '.join([node.get_name() for node in self.__children])
         info = '{} -> [{}]'.format(info_master, info_slave)
         print(info)
 
-    def __tranverse(self, tranverse: str = TV.BFS.value):
-        if tranverse == TV.BFS.value:
+    def traverse(self, walk_type: str=BFS):
+        if walk_type == Tree.BFS:
             nodes = self.__bfs()
-        elif tranverse == TV.DFS.value:
+        elif walk_type == Tree.DFS:
             nodes = self.__dfs()
         else:
-            raise Exception('Unknown Type: {}'.format(tranverse))
+            raise Exception('Unknown Type: {}'.format(walk_type))
         return nodes
 
-    def disp_map(self, tranverse: str = TV.BFS.value):
-        self.__print_title('Map View in {}'.format(tranverse))
-        nodes = self.__tranverse(tranverse=tranverse)
+    def disp_map(self, walk_type: str = BFS):
+        self.__print_title('Map View in {}'.format(walk_type))
+        nodes = self.traverse(walk_type=walk_type)
         for node in nodes:
             node.__print_map()
 
@@ -278,8 +287,8 @@ def test():
 
     s_node = root.search_node('302', verbose=False)
 
-    root.disp_map(tranverse=TV.BFS.value)
-    root.disp_map(tranverse=TV.DFS.value)
+    root.disp_map(walk_type=Tree.BFS)
+    root.disp_map(walk_type=Tree.DFS)
     root.disp_tree()
     root.print_level()
 
