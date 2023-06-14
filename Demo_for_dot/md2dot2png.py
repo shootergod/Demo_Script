@@ -1,4 +1,18 @@
 # ============================================================
+# Doc Info
+# ============================================================
+# !/usr/bin/env python
+# -*- coding: utf-8 -*-
+'''
+@File    :   md2dot2png.py
+@Time    :   2023/06/20 09:14:41
+@Author  :   HuJi
+@Contact :   shootergod@forxmail.com
+@Version :   1.0
+@Desc    :   None
+'''
+
+# ============================================================
 # Import
 # ============================================================
 import os, re
@@ -11,13 +25,20 @@ from dot2png import dot2png
 # ============================================================
 CWD = os.path.dirname(__file__)
 
-COLOR_SCHEME_1 = [
-    '#66c2a5', '#fc8d62', '#8da0cb', '#e78ac3', '#a6d854', '#ffd92f',
-    '#e5c494', '#ffffb3', '#b3b3b3'
-]
+# conf path of prog param
+CONF_FP = os.path.join(CWD, 'conf.json')
+# conf path of color scheme
+CS_FP = os.path.join(CWD, 'color_scheme.json')
 
-COLOR_SCHEME_2 = ['#0079bf','#70b500','#ff9f1a','#eb5a46','#f2d600','#c377e0','#ff78cb','#00c2e0','#51e898','#c4c9cc']
-COLOR_SCHEME_USE = COLOR_SCHEME_2
+OPT_DIR = 'last_md_dir'
+OPT_FILE = 'last_md_file'
+
+COLOR_SCHEME_0 = Config(fp=CS_FP).get_opt('COLOR_SCHEME_0')
+COLOR_SCHEME_TRELLO = Config(fp=CS_FP).get_opt('COLOR_SCHEME_TRELLO')
+COLOR_SCHEME_IOS = Config(fp=CS_FP).get_opt('COLOR_SCHEME_IOS')
+
+COLOR_SCHEME_USE = COLOR_SCHEME_IOS
+
 
 
 # ============================================================
@@ -366,16 +387,16 @@ def md2dot2png(md_fp: str = '', mode: str = ''):
         last_md_dir = os.path.dirname(md_fp)
         last_md_file = os.path.basename(md_fp)
         # take record
-        conf = Config()
-        conf.set_opt(opt_name='last_md_dir', opt_val=last_md_dir)
-        conf.set_opt(opt_name='last_md_file', opt_val=last_md_file)
+        conf = Config(fp=CONF_FP)
+        conf.set_opt(opt_name=OPT_DIR, opt_val=last_md_dir)
+        conf.set_opt(opt_name=OPT_FILE, opt_val=last_md_file)
 
     # case 02: resume last
     if mode == 'last':
         # take record
-        conf = Config()
-        last_md_dir = conf.get_opt(opt_name='last_md_dir')
-        last_md_file = conf.get_opt(opt_name='last_md_file')
+        conf = Config(fp=CONF_FP)
+        last_md_dir = conf.get_opt(opt_name=OPT_DIR)
+        last_md_file = conf.get_opt(opt_name=OPT_FILE)
 
         md_fp = os.path.join(last_md_dir, last_md_file)
 
@@ -408,8 +429,8 @@ def gui_launcher():
         md2dot2png(mode='last')
 
     def btn_sel_new():
-        conf = Config()
-        last_md_dir = conf.get_opt(opt_name='last_md_dir')
+        conf = Config(fp=CONF_FP)
+        last_md_dir = conf.get_opt(opt_name=OPT_DIR)
         if not os.path.isdir(last_md_dir):
             last_md_dir = 'D:/'
 

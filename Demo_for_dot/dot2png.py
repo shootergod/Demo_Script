@@ -1,4 +1,18 @@
 # ============================================================
+# Doc Info
+# ============================================================
+# !/usr/bin/env python
+# -*- coding: utf-8 -*-
+'''
+@File    : dot2png.py
+@Time    : 2023/06/20 09:41:38
+@Author  : HuJi
+@Contact : shootergod@forxmail.com
+@Version : 0.1
+@Desc    : None
+'''
+
+# ============================================================
 # Import
 # ============================================================
 import os, subprocess
@@ -8,31 +22,33 @@ from conf import Config
 # Constant
 # ============================================================
 CWD = os.path.dirname(__file__)
+CONF_FP = os.path.join(CWD, 'conf.json')
 
-
+OPT_DIR = 'last_dot_dir'
+OPT_FILE = 'last_dot_file'
 
 # ============================================================
 # Functions
 # ============================================================
 def dot2png(dot_fp: str = '', mode: str = ''):
 
-    # case 01: 
+    # case 01:
     if dot_fp.endswith('.dot'):
         mode = 'dot_path'
 
         last_dot_dir = os.path.dirname(dot_fp)
         last_dot_file = os.path.basename(dot_fp)
         # take record
-        conf = Config()
-        conf.set_opt(opt_name='last_dot_dir', opt_val=last_dot_dir)
-        conf.set_opt(opt_name='last_dot_file', opt_val=last_dot_file)
+        conf = Config(fp=CONF_FP)
+        conf.set_opt(opt_name=OPT_DIR, opt_val=last_dot_dir)
+        conf.set_opt(opt_name=OPT_FILE, opt_val=last_dot_file)
 
     # case 02: resume last
     if mode == 'last':
         # take record
-        conf = Config()
-        last_dot_dir = conf.get_opt(opt_name='last_dot_dir')
-        last_dot_file = conf.get_opt(opt_name='last_dot_file')
+        conf = Config(fp=CONF_FP)
+        last_dot_dir = conf.get_opt(opt_name=OPT_DIR)
+        last_dot_file = conf.get_opt(opt_name=OPT_FILE)
 
         dot_fp = os.path.join(last_dot_dir, last_dot_file)
 
@@ -98,8 +114,8 @@ def gui_launcher():
         dot2png(mode='last')
 
     def btn_sel_new():
-        conf = Config()
-        last_dot_dir = conf.get_opt(opt_name='last_dot_dir')
+        conf = Config(fp=CONF_FP)
+        last_dot_dir = conf.get_opt(opt_name=OPT_DIR)
         if not os.path.isdir(last_dot_dir):
             last_dot_dir = 'D:/'
 
