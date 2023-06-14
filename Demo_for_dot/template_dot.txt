@@ -1,0 +1,84 @@
+digraph G {
+
+    node [shape = "Mrecord" fontname = "Microsoft Yahei"]
+    dpi = 320;
+    bgcolor="transparent"
+    rankdir = LR;
+    //ranksep=1.3;
+
+    node [style=filled, fillcolor = "#66c2a5"]
+sytleDefineField1
+    node [style=filled, fillcolor = "#fc8d62"]
+sytleDefineField2
+    node [style=filled, fillcolor = "#8da0cb"]
+sytleDefineField3
+    node [style=filled, fillcolor = "#e78ac3"]
+sytleDefineField4
+    node [style=filled, fillcolor = "#a6d854"]
+sytleDefineField5
+    node [style=filled, fillcolor = "#ffd92f"]
+sytleDefineField6
+    node [style=filled, fillcolor = "#e5c494"]
+sytleDefineField7
+    node [style=filled, fillcolor = "#ffffb3"]
+sytleDefineField8
+    node [style=filled, fillcolor = "#b3b3b3"]
+sytleDefineField9
+    node [style=filled, fillcolor = "#66c2a5"]
+sytleDefineField10
+    node [style=filled, fillcolor = "#fc8d62"]
+sytleDefineField11
+    node [style=filled, fillcolor = "#8da0cb"]
+sytleDefineField12
+    node [style=filled, fillcolor = "#a6d854"]
+sytleDefineField13
+    node [style=filled, fillcolor = "#ffd92f"]
+sytleDefineField14
+    node [style=filled, fillcolor = "#e5c494"]
+sytleDefineField15
+    node [style=filled, fillcolor = "#ffffb3"]
+sytleDefineField16
+    node [style=filled, fillcolor = "#ffffb3"]
+sytleDefineField17
+    node [style=filled, fillcolor = "#b3b3b3"]
+sytleDefineField18
+
+
+    //  level 01 
+streamFlow1
+    //  level 02
+streamFlow2
+    //  level 03
+streamFlow3
+    //  level 04
+streamFlow4
+    //  level 05
+streamFlow5
+    //  level 06
+streamFlow6
+    //  level 07
+streamFlow7
+    //  level 08
+streamFlow8
+    //  level 09
+streamFlow9
+    //  level 10 
+streamFlow10
+    //  level 11
+streamFlow11
+    //  level 12
+streamFlow12
+    //  level 13
+streamFlow13
+    //  level 14
+streamFlow14
+    //  level 15
+streamFlow15
+    //  level 16
+streamFlow16
+    //  level 17
+streamFlow17
+    //  level 18
+streamFlow18
+
+}
